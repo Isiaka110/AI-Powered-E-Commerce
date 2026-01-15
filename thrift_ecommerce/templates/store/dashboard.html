@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<section class="bg-gradient-to-r from-purple-800 to-purple-600 text-white py-12 md:py-16 px-6">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between text-center md:text-left">
+        <div class="mb-8 md:mb-0">
+            <span class="inline-block bg-purple-500/30 text-purple-100 py-1 px-4 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest border border-purple-400/30">
+                Curated for You
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black mt-4 mb-4 leading-tight">
+                Made for your fit: <span class="underline decoration-purple-300">{{ user.preferred_size }}</span>
+            </h2>
+            <p class="text-purple-100 text-sm md:text-lg opacity-90 max-w-md mx-auto md:mx-0">
+                Our AI scanned hundreds of thrifted pieces to find items that match your style and exact measurements.
+            </p>
+        </div>
+        
+        <div class="hidden md:block relative">
+            <div class="w-32 h-32 bg-purple-400 rounded-full blur-3xl absolute -top-10 -left-10 opacity-50"></div>
+            <div class="relative bg-white/10 backdrop-blur-lg border border-white/20 p-6 rounded-3xl text-center">
+                <p class="text-xs uppercase tracking-tighter opacity-70">Your Size</p>
+                <p class="text-6xl font-black">{{ user.preferred_size }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="max-w-7xl mx-auto px-4 md:px-6 mt-[-30px] relative z-10 flex space-x-3 overflow-x-auto no-scrollbar pb-4">
+    <a href="{% url 'dashboard' %}" class="{% if not request.GET.category %}bg-black text-white shadow-xl{% else %}bg-white text-gray-600 border border-gray-100{% endif %} px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl text-sm md:text-base font-bold whitespace-nowrap transition transform active:scale-95">
+        All Items
+    </a>
+    <a href="?category=Dresses" class="{% if request.GET.category == 'Dresses' %}bg-purple-600 text-white shadow-lg{% else %}bg-white text-gray-600 border border-gray-100{% endif %} px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl text-sm md:text-base font-bold whitespace-nowrap transition transform active:scale-95">
+        Dresses
+    </a>
+    <a href="?category=Tops" class="{% if request.GET.category == 'Tops' %}bg-purple-600 text-white shadow-lg{% else %}bg-white text-gray-600 border border-gray-100{% endif %} px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl text-sm md:text-base font-bold whitespace-nowrap transition transform active:scale-95">
+        Tops
+    </a>
+    <a href="?category=Bottoms" class="{% if request.GET.category == 'Bottoms' %}bg-purple-600 text-white shadow-lg{% else %}bg-white text-gray-600 border border-gray-100{% endif %} px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl text-sm md:text-base font-bold whitespace-nowrap transition transform active:scale-95">
+        Bottoms
+    </a>
+    <a href="?sale=true" class="bg-red-50 border border-red-100 text-red-600 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl text-sm md:text-base whitespace-nowrap font-black transition transform active:scale-95">
+        🔥 Flash Sale
+    </a>
+</div>
+
+<main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+    <div class="flex justify-between items-center mb-8">
+        <h3 class="text-xl md:text-2xl font-black text-gray-900 tracking-tight">Hand-Picked</h3>
+        <p class="text-[10px] md:text-sm font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">{{ products|length }} Items</p>
+    </div>
+    
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-10">
+        {% for product in products %}
+        <div class="group bg-white rounded-2xl md:rounded-3xl shadow-sm border border-gray-50 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
+            
+            <div class="relative aspect-[4/5] overflow-hidden">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                
+                <span class="absolute top-2 left-2 md:top-4 md:left-4 bg-white/90 backdrop-blur-md text-gray-900 text-[9px] md:text-[11px] font-black px-2 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-full shadow-sm">
+                    {{ product.size }}
+                </span>
+
+                <a href="{% url 'toggle_wishlist' product.id %}" class="absolute top-2 right-2 md:top-4 md:right-4 bg-white/90 backdrop-blur-md p-2 md:p-2.5 rounded-full shadow-md active:scale-90 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 {% if request.user in product.favorites.all %}fill-red-500 text-red-500{% else %}text-gray-400{% endif %}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </a>
+
+                <a href="{% url 'product_detail' product.id %}" class="absolute inset-0 z-0"></a>
+            </div>
+
+            <div class="p-3 md:p-6 flex flex-col flex-grow">
+                <p class="text-[9px] md:text-xs font-bold text-purple-600 uppercase tracking-widest mb-1">{{ product.category }}</p>
+                <h4 class="text-gray-900 font-bold text-sm md:text-lg truncate mb-2 md:mb-4">{{ product.name }}</h4>
+                
+                <div class="flex justify-between items-center mt-auto">
+                    <div class="flex flex-col">
+                        {% if product.discount_price %}
+                            <span class="text-base md:text-2xl font-black text-gray-900">${{ product.discount_price }}</span>
+                            <span class="text-red-500 text-[10px] md:text-xs font-bold line-through">${{ product.price }}</span>
+                        {% else %}
+                            <span class="text-base md:text-2xl font-black text-gray-900">${{ product.price }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <a href="{% url 'add_to_cart' product.id %}" class="bg-gray-900 text-white p-2 md:p-3 rounded-xl md:rounded-2xl hover:bg-purple-600 active:scale-90 transition-all shadow-md relative z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 md:py-32 text-center bg-gray-50 rounded-[2rem] md:rounded-[3rem] border-2 border-dashed border-gray-200">
+            <div class="text-5xl md:text-7xl mb-6">📦</div>
+            <h3 class="text-xl md:text-2xl font-black text-gray-900 mb-2">The rack is empty!</h3>
+            <p class="text-xs md:text-sm text-gray-500 max-w-xs mx-auto mb-8">No {{ request.GET.category|default:"" }} items in size {{ user.preferred_size }} right now.</p>
+            <a href="{% url 'dashboard' %}" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-purple-700 transition">Show All</a>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+
+<style>
+    /* Utility to hide scrollbar but keep functionality */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-3xl mx-auto py-12 md:py-20 px-6">
+    <div class="bg-white rounded-[3rem] shadow-2xl shadow-purple-100 border border-purple-50 overflow-hidden text-center p-8 md:p-12 relative">
+        
+        <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-black text-gray-900 mb-2">Order Confirmed!</h1>
+        <p class="text-gray-400 font-medium mb-10">Thank you for shopping sustainably with us.</p>
+
+        <div class="bg-gray-50 rounded-3xl p-6 md:p-8 text-left mb-8">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
+                <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Order ID</span>
+                <span class="text-sm font-bold text-gray-900">#{{ order.order_id }}</span>
+            </div>
+            
+            <div class="space-y-4">
+                {% for item in order.items.all %}
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">{{ item.quantity }}x {{ item.product.name }}</span>
+                    <span class="font-bold text-gray-900">${{ item.price }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="border-t border-dashed border-gray-300 mt-6 pt-6 flex justify-between items-center">
+                <span class="font-black text-gray-900 text-lg">Amount Paid</span>
+                <span class="text-2xl font-black text-purple-600">${{ order.total_paid }}</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 justify-center">
+            <a href="{% url 'dashboard' %}" class="bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-purple-600 transition">
+                Continue Shopping
+            </a>
+            <button onclick="window.print()" class="bg-white text-gray-900 border border-gray-200 px-8 py-4 rounded-2xl font-bold hover:bg-gray-50 transition">
+                Save as PDF
+            </button>
+        </div>
+
+        <p class="text-[10px] text-gray-400 mt-10 uppercase tracking-[0.2em] font-bold">A copy of this receipt has been sent to {{ user.email }}</p>
+    </div>
+</div>
+{% endblock %}

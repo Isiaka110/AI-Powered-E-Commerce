@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="flex flex-col lg:flex-row gap-12">
+        
+        <div class="lg:w-1/2">
+            <div class="sticky top-24">
+                <div class="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100 shadow-sm border border-gray-100">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:w-1/2 space-y-8">
+            <div>
+                <nav class="flex text-sm text-gray-400 mb-4 uppercase tracking-widest font-bold">
+                    <a href="{% url 'dashboard' %}" class="hover:text-purple-600">Shop</a>
+                    <span class="mx-2">/</span>
+                    <span>{{ product.category }}</span>
+                </nav>
+                <h1 class="text-4xl font-black text-gray-900 leading-tight">{{ product.name }}</h1>
+                <p class="text-3xl font-black text-purple-700 mt-4">${{ product.price }}</p>
+            </div>
+
+            <div class="border-t border-b border-gray-100 py-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-500 font-medium">Available Size</span>
+                    <span class="bg-purple-50 text-purple-700 px-4 py-1 rounded-full font-bold border border-purple-100">
+                        {{ product.size }}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-500 font-medium">Condition</span>
+                    <span class="text-gray-900 font-bold">Excellent Thrift Quality</span>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h3 class="font-bold text-gray-900">Description</h3>
+                <p class="text-gray-500 leading-relaxed">
+                    {{ product.description|default:"This is a hand-picked, premium thrift piece curated specifically for your style profile. Sustainable, unique, and ready for a new home." }}
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                <a href="{% url 'add_to_cart' product.id %}" class="flex-1 bg-purple-600 text-white py-5 rounded-2xl font-bold text-center shadow-xl shadow-purple-100 hover:bg-black transition-all transform hover:-translate-y-1">
+                    Add to Bag
+                </a>
+                <a href="{% url 'toggle_wishlist' product.id %}" class="px-8 py-5 border-2 border-gray-100 rounded-2xl flex items-center justify-center hover:border-red-200 hover:bg-red-50 transition-all group">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 group-hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 pt-6">
+                <div class="bg-gray-50 p-4 rounded-xl flex items-center space-x-3">
+                    <span class="text-2xl">⚡</span>
+                    <span class="text-xs font-bold text-gray-600 uppercase tracking-tighter">Fast Shipping</span>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl flex items-center space-x-3">
+                    <span class="text-2xl">♻️</span>
+                    <span class="text-xs font-bold text-gray-600 uppercase tracking-tighter">100% Sustainable</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="max-w-7xl mx-auto px-6 py-20 border-t border-gray-50">
+    <h3 class="text-2xl font-black mb-10">You might also love</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        {% for item in related_products %}
+            {% include 'store/partials/product_card.html' with product=item %}
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-black mb-10 text-gray-900">Your Favorites ❤️</h1>
+    
+    {% if products %}
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {% for product in products %}
+                {% include 'store/partials/product_card.html' with product=product %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-20 bg-gray-50 rounded-[3rem]">
+            <p class="text-gray-400 mb-6">You haven't saved any items yet.</p>
+            <a href="{% url 'dashboard' %}" class="bg-purple-600 text-white px-8 py-3 rounded-xl font-bold">Explore Shop</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

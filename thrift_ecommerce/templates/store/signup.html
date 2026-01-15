@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="bg-purple-50 min-h-[80vh] flex items-center justify-center p-6">
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl p-10 border border-purple-100">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold text-gray-900">Create Profile</h2>
+            <p class="text-gray-500 mt-2">Get personalized recommendations instantly.</p>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div>
+                <label class="block text-sm font-semibold text-purple-900 mb-2">{{ field.label }}</label>
+                <div class="signup-field-container">
+                    {{ field }}
+                </div>
+                {% if field.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-200 transition duration-300">
+                Create My Personalized Shop
+            </button>
+        </form>
+
+        <div class="mt-8 text-center">
+            <p class="text-gray-400 text-sm">Already have an account? 
+                <a href="{% url 'login' %}" class="text-purple-600 font-bold hover:underline">Log In</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Standard CSS styling for the Django-generated form inputs */
+    .signup-field-container input, 
+    .signup-field-container select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid #f3e8ff; /* purple-100 */
+        outline: none;
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* Valid CSS for the focus state (replaces 'ring' and 'ring-color') */
+    .signup-field-container input:focus, 
+    .signup-field-container select:focus {
+        border-color: #a855f7; /* purple-500 */
+        /* This box-shadow creates the 'ring' effect in standard CSS */
+        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2); 
+    }
+</style>
+
+{% endblock %}

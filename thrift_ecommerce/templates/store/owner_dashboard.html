@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-7xl mx-auto py-10 px-6">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Inventory Management</h1>
+        <a href="/admin/store/product/add/" class="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold">+ Add New Product</a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b">
+                <tr>
+                    <th class="p-4 text-sm font-bold text-gray-500">Product</th>
+                    <th class="p-4 text-sm font-bold text-gray-500">Size</th>
+                    <th class="p-4 text-sm font-bold text-gray-500">Original Price</th>
+                    <th class="p-4 text-sm font-bold text-gray-500">Sale Price</th>
+                    <th class="p-4 text-sm font-bold text-gray-500">Status</th>
+                    <th class="p-4 text-sm font-bold text-gray-500">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for product in products %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="p-4 flex items-center space-x-3">
+                        <img src="{{ product.image.url }}" class="w-10 h-10 rounded object-cover">
+                        <span class="font-medium">{{ product.name }}</span>
+                    </td>
+                    <td class="p-4 text-gray-600">{{ product.size }}</td>
+                    <td class="p-4 text-gray-600">${{ product.price }}</td>
+                    <td class="p-4">
+                        <span class="text-green-600 font-bold">{% if product.discount_price %}${{ product.discount_price }}{% else %}-{% endif %}</span>
+                    </td>
+                    <td class="p-4">
+                        {% if product.is_available %}
+                        <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Live</span>
+                        {% else %}
+                        <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">Sold Out</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 space-x-2">
+                        <a href="{% url 'toggle_availability' product.id %}" class="text-xs font-bold text-purple-600">Toggle Status</a>
+                        <a href="{% url 'delete_product' product.id %}" class="text-xs font-bold text-red-500" onclick="return confirm('Delete this item?')">Remove</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<header class="max-w-7xl mx-auto px-6 py-16 lg:py-24 flex flex-col lg:flex-row items-center">
+    <div class="lg:w-1/2 text-center lg:text-left">
+        <span class="text-purple-600 font-bold uppercase tracking-widest text-sm">Personalized Thrift for Women</span>
+        <h2 class="text-6xl font-extrabold mt-4 mb-6 leading-tight text-gray-900">
+            Quality Thrift that <br> <span class="text-purple-600 underline">Actually Fits.</span>
+        </h2>
+        <p class="text-xl text-gray-500 mb-10 max-w-lg">
+            Stop scrolling through clothes that aren't your size. Share your fit, and our AI will curate a personalized rack just for you.
+        </p>
+
+        <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="inline-block bg-purple-700 text-white text-xl px-10 py-5 rounded-2xl shadow-xl hover:bg-purple-800 transition transform hover:-translate-y-1">
+                    Enter My Shop →
+                </a>
+            {% else %}
+                <a href="{% url 'signup' %}" class="inline-block bg-purple-700 text-white text-xl px-10 py-5 rounded-2xl shadow-xl hover:bg-purple-800 transition transform hover:-translate-y-1">
+                    Start My Fit Profile →
+                </a>
+                <a href="{% url 'login' %}" class="inline-block bg-white text-purple-700 border-2 border-purple-100 text-xl px-10 py-5 rounded-2xl hover:bg-purple-50 transition">
+                    Log In
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="lg:w-1/2 mt-16 lg:mt-0 relative flex justify-center">
+        <div class="w-72 h-96 bg-purple-100 rounded-3xl absolute -rotate-6 z-0"></div>
+        <div class="w-72 h-96 bg-gray-200 rounded-3xl z-10 overflow-hidden shadow-2xl border-4 border-white">
+             <img src="{% static 'images/owner.jpg' %}" alt="Founder" class="w-full h-full object-cover">
+        </div>
+        <div class="absolute bottom-[-20px] z-20 bg-white p-4 rounded-xl shadow-lg border border-purple-50">
+            <p class="text-purple-900 font-bold">"Fashion is better when it's personal."</p>
+            <p class="text-gray-400 text-sm">— Your Curator</p>
+        </div>
+    </div>
+</header>
+
+<section class="bg-purple-50 py-20 mt-10">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <h3 class="text-3xl font-bold text-gray-900">Your Journey to the Perfect Fit</h3>
+        </div>
+        <div class="grid md:grid-cols-3 gap-12">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-purple-100 text-center">
+                <div class="text-4xl mb-4">📏</div>
+                <h4 class="font-bold text-xl mb-2">1. Share Your Size</h4>
+                <p class="text-gray-500">Tell us your measurements during <a href="{% url 'signup' %}" class="text-purple-600 underline">signup</a>. No more guessing games.</p>
+            </div>
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-purple-100 text-center">
+                <div class="text-4xl mb-4">🤖</div>
+                <h4 class="font-bold text-xl mb-2">2. AI Curation</h4>
+                <p class="text-gray-500">Our system filters through thousands of items to find only what fits your unique profile.</p>
+            </div>
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-purple-100 text-center">
+                <div class="text-4xl mb-4">🛍️</div>
+                <h4 class="font-bold text-xl mb-2">3. Shop with Ease</h4>
+                <p class="text-gray-500">Browse your personalized dashboard and checkout securely via Paystack.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

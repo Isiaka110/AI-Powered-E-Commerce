@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-6">
+    <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-6 md:mb-8 tracking-tight">Shopping Bag</h1>
+
+    <div class="flex flex-col lg:flex-row gap-8 lg:gap-10">
+        <div class="lg:w-2/3 space-y-6">
+            {% for item in cart_items %}
+            <div class="flex items-center justify-between border-b border-gray-100 pb-6 gap-4">
+                <div class="flex items-center space-x-3 md:space-x-4">
+                    <img src="{{ item.product.image.url }}" class="w-16 h-20 md:w-20 md:h-24 object-cover rounded-xl md:rounded-2xl shadow-sm">
+                    <div class="min-w-0">
+                        <h3 class="font-bold text-gray-900 text-sm md:text-base truncate">{{ item.product.name }}</h3>
+                        <p class="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">Size: {{ item.product.size }}</p>
+                        
+                        <a href="{% url 'update_cart_quantity' item.id 'decrement' %}?remove=true" class="text-[10px] text-red-400 font-bold uppercase tracking-tighter hover:text-red-600 transition block mt-1">
+                            Remove
+                        </a>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row items-end md:items-center space-y-2 md:space-y-0 md:space-x-8">
+                    <div class="flex items-center bg-gray-50 p-1 rounded-lg md:rounded-xl border border-gray-100">
+                        <a href="{% url 'update_cart_quantity' item.id 'decrement' %}" 
+                           class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-white rounded-md md:rounded-lg shadow-sm hover:bg-gray-100 text-gray-600 font-bold">
+                            −
+                        </a>
+                        <span class="px-3 md:px-4 text-xs md:text-sm font-black text-gray-900">
+                            {{ item.quantity }}
+                        </span>
+                        <a href="{% url 'update_cart_quantity' item.id 'increment' %}" 
+                           class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-white rounded-md md:rounded-lg shadow-sm hover:bg-purple-600 hover:text-white text-gray-600 font-bold">
+                            +
+                        </a>
+                    </div>
+
+                    <div class="text-right min-w-[60px] md:min-w-[80px]">
+                        <p class="font-black text-gray-900 text-base md:text-lg">${{ item.get_total }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-16 md:py-20 bg-gray-50 rounded-[2rem] md:rounded-[3rem] border-2 border-dashed border-gray-100">
+                <div class="text-5xl md:text-6xl mb-4">🛒</div>
+                <h3 class="text-lg md:text-xl font-black text-gray-900">Your bag is lonely</h3>
+                <p class="text-gray-400 mb-6 md:mb-8 text-xs md:text-sm">Add some thrifted gems to get started!</p>
+                <a href="{% url 'dashboard' %}" class="bg-purple-600 text-white px-8 md:px-10 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold inline-block hover:shadow-lg hover:shadow-purple-200 transition">
+                    Back to Shop
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="lg:w-1/3">
+            <div class="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-gray-100 lg:sticky lg:top-10">
+                <h3 class="text-lg md:text-xl font-black mb-6 text-gray-900">Summary</h3>
+                
+                <form method="POST" class="mb-6 md:mb-8">
+                    {% csrf_token %}
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Promo Code</label>
+                    <div class="flex gap-2">
+                        <input type="text" name="coupon_code" placeholder="THRIFT20" class="flex-grow border border-gray-100 bg-gray-50 rounded-xl px-4 py-3 text-xs md:text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                        <button type="submit" class="bg-gray-900 text-white px-4 py-3 rounded-xl text-xs md:text-sm font-bold hover:bg-purple-600">Apply</button>
+                    </div>
+                    {% if coupon_error %}
+                        <p class="text-red-500 text-[10px] mt-2 font-bold">{{ coupon_error }}</p>
+                    {% endif %}
+                </form>
+
+                <div class="space-y-3 md:space-y-4 border-t border-dashed border-gray-200 pt-6">
+                    <div class="flex justify-between text-gray-500 text-sm font-medium">
+                        <span>Subtotal</span>
+                        <span class="text-gray-900">${{ total }}</span>
+                    </div>
+                    {% if discount > 0 %}
+                    <div class="flex justify-between text-green-600 text-sm font-bold">
+                        <span>Discount</span>
+                        <span>-${{ discount }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="font-bold text-gray-900">Total</span>
+                        <span class="text-2xl md:text-3xl font-black text-purple-600">${{ grand_total }}</span>
+                    </div>
+                </div>
+                
+                <button onclick="payWithPaystack()" class="w-full bg-purple-600 text-white py-4 md:py-5 rounded-2xl font-black text-base md:text-lg mt-6 md:mt-8 shadow-xl shadow-purple-100 hover:bg-purple-700 active:scale-95 transition-all">
+                    Checkout Now
+                </button>
+
+                <p class="text-[10px] text-center text-gray-400 mt-4 uppercase tracking-widest font-bold">Secure Payment via Paystack</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+  function payWithPaystack() {
+    // We parse the amount as a float first to ensure JS treats it as a number
+    const totalAmount = parseFloat("{{ grand_total|default:'0' }}");
+    
+    let handler = PaystackPop.setup({
+      key: 'pk_test_5bec755e0dd20f7184f4dd1901301ca3016ba7d4', // Ensure this is your actual key
+      email: "{{ user.email }}", // Quotes are required here
+      amount: Math.round(totalAmount * 100), // Convert to Kobo/Cents safely
+      currency: "NGN",
+      ref: "TE-" + Math.floor((Math.random() * 1000000000) + 1),
+      callback: function(response) {
+        // Redirect to success URL with reference
+        const successUrl = "{% url 'complete_purchase' %}";
+        window.location.href = successUrl + "?reference=" + response.reference;
+      },
+      onClose: function() {
+        console.log('Transaction cancelled');
+      }
+    });
+    handler.openIframe();
+  }
+</script>
+{% endblock %}
