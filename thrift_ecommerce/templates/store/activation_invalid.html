@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-xl mx-auto py-24 text-center px-6">
+    <h1 class="text-4xl font-black italic uppercase tracking-tighter mb-4 text-red-500">Link Invalid</h1>
+    <p class="text-gray-500 mb-8">This activation link is invalid or has expired. Please try signing up again or contact support.</p>
+    <a href="{% url 'signup' %}" class="text-xs font-black uppercase tracking-widest text-gray-900 underline">Try Signing Up Again</a>
+</div>
+{% endblock %}

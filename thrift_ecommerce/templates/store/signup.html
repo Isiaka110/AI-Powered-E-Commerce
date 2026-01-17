@@ -1,59 +1,92 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="bg-purple-50 min-h-[80vh] flex items-center justify-center p-6">
-    <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl p-10 border border-purple-100">
+<div class="bg-brand-50 min-h-[90vh] flex items-center justify-center p-6 relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-full h-full z-0 opacity-40">
+        <div class="absolute top-10 -left-10 w-64 h-64 bg-brand-200 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-10 -right-10 w-64 h-64 bg-purple-200 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl shadow-brand-900/10 p-10 border border-brand-100 relative z-10">
         <div class="text-center mb-10">
-            <h2 class="text-3xl font-bold text-gray-900">Create Profile</h2>
-            <p class="text-gray-500 mt-2">Get personalized recommendations instantly.</p>
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-brand-50 rounded-2xl mb-4">
+                <span class="text-3xl">👗</span>
+            </div>
+            <h2 class="text-2xl font-black text-gray-900 tracking-tighter uppercase">Join {{ store.store_name }}</h2>
+            <p class="text-gray-500 mt-2 text-sm">Experience thrifted fashion, tailored by AI.</p>
         </div>
 
         <form method="POST" class="space-y-6">
             {% csrf_token %}
             
             {% for field in form %}
-            <div>
-                <label class="block text-sm font-semibold text-purple-900 mb-2">{{ field.label }}</label>
+            <div class="group">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-brand-900 mb-2 ml-1">
+                    {{ field.label }}
+                </label>
                 <div class="signup-field-container">
                     {{ field }}
                 </div>
                 {% if field.errors %}
-                    <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                    <p class="text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase tracking-tighter">{{ field.errors.0 }}</p>
+                {% endif %}
+                {% if field.help_text %}
+                    <p class="text-gray-400 text-[10px] mt-1 ml-1 italic">{{ field.help_text }}</p>
                 {% endif %}
             </div>
             {% endfor %}
 
-            <button type="submit" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-200 transition duration-300">
-                Create My Personalized Shop
+            <p class="text-[10px] text-gray-400 text-center px-4">
+                By creating an account, you agree to our sustainable fashion terms and AI processing of your sizing data.
+            </p>
+
+            <button type="submit" class="w-full bg-gray-900 text-white font-black py-5 rounded-2xl hover:bg-brand-600 shadow-xl shadow-brand-100 transition-all active:scale-[0.98] uppercase tracking-widest text-sm">
+                JOIN NOW
             </button>
         </form>
 
-        <div class="mt-8 text-center">
-            <p class="text-gray-400 text-sm">Already have an account? 
-                <a href="{% url 'login' %}" class="text-purple-600 font-bold hover:underline">Log In</a>
+        <div class="mt-8 text-center pt-6 border-t border-gray-50">
+            <p class="text-gray-400 text-xs font-medium">Already part of the movement? 
+                <a href="{% url 'login' %}" class="text-brand-600 font-black hover:text-brand-900 transition">Log In</a>
             </p>
         </div>
     </div>
 </div>
 
 <style>
-    /* Standard CSS styling for the Django-generated form inputs */
+    /* Styling for the Django-generated form inputs to match the brand system */
     .signup-field-container input, 
     .signup-field-container select {
         width: 100%;
-        padding: 0.75rem 1rem;
-        border-radius: 0.75rem;
-        border: 1px solid #f3e8ff; /* purple-100 */
+        padding: 0.85rem 1.25rem;
+        border-radius: 1rem;
+        border: 1px solid #f3e8ff; /* brand-100 */
+        background-color: #fafafa;
+        font-size: 0.875rem;
+        color: #1a1a1a;
         outline: none;
-        transition: all 0.2s ease-in-out;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* Valid CSS for the focus state (replaces 'ring' and 'ring-color') */
+    .signup-field-container input::placeholder {
+        color: #a1a1aa;
+    }
+
+    /* Focus States */
     .signup-field-container input:focus, 
     .signup-field-container select:focus {
-        border-color: #a855f7; /* purple-500 */
-        /* This box-shadow creates the 'ring' effect in standard CSS */
-        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2); 
+        border-color: #8b5cf6; /* brand-500 */
+        background-color: #ffffff;
+        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1); 
+    }
+
+    /* Fix for Select dropdown padding */
+    .signup-field-container select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238b5cf6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1.25rem;
     }
 </style>
 

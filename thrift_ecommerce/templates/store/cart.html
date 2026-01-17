@@ -1,119 +1,139 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-6">
-    <h1 class="text-2xl md:text-3xl font-black text-gray-900 mb-6 md:mb-8 tracking-tight">Shopping Bag</h1>
+<div class="max-w-5xl mx-auto py-6 md:py-12 px-4 md:px-6">
+    <div class="flex items-baseline justify-between mb-8 md:mb-12">
+        <h1 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tighter uppercase italic">Shopping Bag</h1>
+        <span class="text-[10px] font-black text-purple-600 uppercase tracking-[0.2em] bg-purple-50 px-4 py-1.5 rounded-full">
+            {{ cart_items|length }} Item{{ cart_items|pluralize }}
+        </span>
+    </div>
 
-    <div class="flex flex-col lg:flex-row gap-8 lg:gap-10">
-        <div class="lg:w-2/3 space-y-6">
+    <div class="flex flex-col lg:flex-row gap-10 lg:gap-16">
+        <div class="lg:w-2/3 space-y-8">
             {% for item in cart_items %}
-            <div class="flex items-center justify-between border-b border-gray-100 pb-6 gap-4">
-                <div class="flex items-center space-x-3 md:space-x-4">
-                    <img src="{{ item.product.image.url }}" class="w-16 h-20 md:w-20 md:h-24 object-cover rounded-xl md:rounded-2xl shadow-sm">
+            <div class="group flex items-center justify-between border-b border-gray-100 pb-8 gap-4 transition-all hover:border-purple-100">
+                <div class="flex items-center space-x-4 md:space-x-6">
+                    <div class="relative w-20 h-24 md:w-24 md:h-32 flex-shrink-0 rounded-2xl overflow-hidden shadow-sm border border-gray-50">
+                        <img src="{{ item.product.image.url }}" class="w-full h-full object-cover">
+                    </div>
+                    
                     <div class="min-w-0">
-                        <h3 class="font-bold text-gray-900 text-sm md:text-base truncate">{{ item.product.name }}</h3>
-                        <p class="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">Size: {{ item.product.size }}</p>
+                        <h3 class="font-black text-gray-900 text-base md:text-lg uppercase tracking-tight italic">{{ item.product.name }}</h3>
+                        <div class="flex gap-3 mt-1">
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-0.5 rounded">Size {{ item.product.size }}</span>
+                            <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest bg-purple-50/50 px-2 py-0.5 rounded">{{ item.product.category }}</span>
+                        </div>
                         
-                        <a href="{% url 'update_cart_quantity' item.id 'decrement' %}?remove=true" class="text-[10px] text-red-400 font-bold uppercase tracking-tighter hover:text-red-600 transition block mt-1">
-                            Remove
+                        <a href="{% url 'update_cart_quantity' item.id 'decrement' %}?remove=true" class="text-[10px] text-red-400 font-black uppercase tracking-[0.1em] hover:text-red-600 transition block mt-4 underline underline-offset-4">
+                            Remove Piece
                         </a>
                     </div>
                 </div>
 
-                <div class="flex flex-col md:flex-row items-end md:items-center space-y-2 md:space-y-0 md:space-x-8">
-                    <div class="flex items-center bg-gray-50 p-1 rounded-lg md:rounded-xl border border-gray-100">
+                <div class="flex flex-col md:flex-row items-end md:items-center space-y-4 md:space-y-0 md:space-x-10">
+                    <div class="flex items-center bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
                         <a href="{% url 'update_cart_quantity' item.id 'decrement' %}" 
-                           class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-white rounded-md md:rounded-lg shadow-sm hover:bg-gray-100 text-gray-600 font-bold">
+                           class="w-8 h-8 flex items-center justify-center bg-white rounded-xl shadow-sm hover:bg-red-50 hover:text-red-500 text-gray-600 transition font-bold">
                             −
                         </a>
-                        <span class="px-3 md:px-4 text-xs md:text-sm font-black text-gray-900">
+                        <span class="px-5 text-sm font-black text-gray-900">
                             {{ item.quantity }}
                         </span>
                         <a href="{% url 'update_cart_quantity' item.id 'increment' %}" 
-                           class="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-white rounded-md md:rounded-lg shadow-sm hover:bg-purple-600 hover:text-white text-gray-600 font-bold">
+                           class="w-8 h-8 flex items-center justify-center bg-white rounded-xl shadow-sm hover:bg-purple-600 hover:text-white text-gray-600 transition font-bold">
                             +
                         </a>
                     </div>
 
-                    <div class="text-right min-w-[60px] md:min-w-[80px]">
-                        <p class="font-black text-gray-900 text-base md:text-lg">${{ item.get_total }}</p>
+                    <div class="text-right min-w-[100px]">
+                        <p class="font-black text-gray-900 text-lg md:text-xl tracking-tighter italic">₦{{ item.get_total }}</p>
                     </div>
                 </div>
             </div>
             {% empty %}
-            <div class="text-center py-16 md:py-20 bg-gray-50 rounded-[2rem] md:rounded-[3rem] border-2 border-dashed border-gray-100">
-                <div class="text-5xl md:text-6xl mb-4">🛒</div>
-                <h3 class="text-lg md:text-xl font-black text-gray-900">Your bag is lonely</h3>
-                <p class="text-gray-400 mb-6 md:mb-8 text-xs md:text-sm">Add some thrifted gems to get started!</p>
-                <a href="{% url 'dashboard' %}" class="bg-purple-600 text-white px-8 md:px-10 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold inline-block hover:shadow-lg hover:shadow-purple-200 transition">
-                    Back to Shop
+            <div class="text-center py-20 bg-white rounded-[3rem] border border-gray-100 shadow-sm">
+                <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">🛒</div>
+                <h3 class="text-xl font-black text-gray-900 uppercase italic">Bag is Empty</h3>
+                <p class="text-gray-400 mt-2 mb-8 text-sm font-medium uppercase tracking-widest">Your curated collection starts here</p>
+                <a href="{% url 'dashboard' %}" class="bg-gray-900 text-white px-10 py-4 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] hover:bg-purple-600 transition transform hover:-translate-y-1">
+                    Explore Drops
                 </a>
             </div>
             {% endfor %}
         </div>
 
+        {% if cart_items %}
         <div class="lg:w-1/3">
-            <div class="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-gray-100 lg:sticky lg:top-10">
-                <h3 class="text-lg md:text-xl font-black mb-6 text-gray-900">Summary</h3>
+            <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-50 lg:sticky lg:top-10">
+                <h3 class="text-[10px] font-black mb-8 text-gray-400 uppercase tracking-[0.3em]">Order Summary</h3>
                 
-                <form method="POST" class="mb-6 md:mb-8">
+                <form method="POST" class="mb-10">
                     {% csrf_token %}
-                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Promo Code</label>
-                    <div class="flex gap-2">
-                        <input type="text" name="coupon_code" placeholder="THRIFT20" class="flex-grow border border-gray-100 bg-gray-50 rounded-xl px-4 py-3 text-xs md:text-sm focus:ring-2 focus:ring-purple-500 outline-none">
-                        <button type="submit" class="bg-gray-900 text-white px-4 py-3 rounded-xl text-xs md:text-sm font-bold hover:bg-purple-600">Apply</button>
+                    <div class="relative">
+                        <input type="text" name="coupon_code" placeholder="PROMO CODE" 
+                               class="w-full border-b-2 border-gray-100 bg-transparent py-3 text-xs font-black uppercase tracking-widest focus:border-purple-600 outline-none transition-colors placeholder:text-gray-200">
+                        <button type="submit" class="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-black text-purple-600 uppercase tracking-widest hover:text-black">Apply</button>
                     </div>
                     {% if coupon_error %}
-                        <p class="text-red-500 text-[10px] mt-2 font-bold">{{ coupon_error }}</p>
+                        <p class="text-red-500 text-[9px] mt-2 font-black uppercase tracking-widest">{{ coupon_error }}</p>
                     {% endif %}
                 </form>
 
-                <div class="space-y-3 md:space-y-4 border-t border-dashed border-gray-200 pt-6">
-                    <div class="flex justify-between text-gray-500 text-sm font-medium">
+                <div class="space-y-4 pt-4">
+                    <div class="flex justify-between text-gray-400 text-[11px] font-black uppercase tracking-widest">
                         <span>Subtotal</span>
-                        <span class="text-gray-900">${{ total }}</span>
+                        <span class="text-gray-900">₦{{ total }}</span>
                     </div>
+                    
                     {% if discount > 0 %}
-                    <div class="flex justify-between text-green-600 text-sm font-bold">
-                        <span>Discount</span>
-                        <span>-${{ discount }}</span>
+                    <div class="flex justify-between text-green-500 text-[11px] font-black uppercase tracking-widest bg-green-50 px-4 py-2 rounded-lg">
+                        <span>Studio Discount</span>
+                        <span>-₦{{ discount }}</span>
                     </div>
                     {% endif %}
-                    <div class="flex justify-between items-center pt-2">
-                        <span class="font-bold text-gray-900">Total</span>
-                        <span class="text-2xl md:text-3xl font-black text-purple-600">${{ grand_total }}</span>
+
+                    <div class="flex justify-between items-end pt-6 border-t border-gray-50">
+                        <span class="font-black text-gray-900 uppercase text-xs tracking-widest">Grand Total</span>
+                        <span class="text-3xl font-black text-purple-700 tracking-tighter italic leading-none">₦{{ grand_total }}</span>
                     </div>
                 </div>
                 
-                <button onclick="payWithPaystack()" class="w-full bg-purple-600 text-white py-4 md:py-5 rounded-2xl font-black text-base md:text-lg mt-6 md:mt-8 shadow-xl shadow-purple-100 hover:bg-purple-700 active:scale-95 transition-all">
-                    Checkout Now
+                <button onclick="payWithPaystack()" class="w-full bg-gray-900 text-white py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] mt-10 hover:bg-purple-600 active:scale-95 shadow-xl shadow-gray-200 transition-all transform hover:-translate-y-1">
+                    Complete Purchase
                 </button>
 
-                <p class="text-[10px] text-center text-gray-400 mt-4 uppercase tracking-widest font-bold">Secure Payment via Paystack</p>
+                <div class="mt-8 flex items-center justify-center gap-2 grayscale opacity-50">
+                    <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Secure via Paystack</span>
+                </div>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 
 <script src="https://js.paystack.co/v1/inline.js"></script>
-<script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
   function payWithPaystack() {
-    // We parse the amount as a float first to ensure JS treats it as a number
     const totalAmount = parseFloat("{{ grand_total|default:'0' }}");
     
     let handler = PaystackPop.setup({
-      key: 'pk_test_5bec755e0dd20f7184f4dd1901301ca3016ba7d4', // Ensure this is your actual key
-      email: "{{ user.email }}", // Quotes are required here
-      amount: Math.round(totalAmount * 100), // Convert to Kobo/Cents safely
+      key: 'pk_test_5bec755e0dd20f7184f4dd1901301ca3016ba7d4', 
+      email: "{{ user.email }}", 
+      amount: Math.round(totalAmount * 100), 
       currency: "NGN",
-      ref: "TE-" + Math.floor((Math.random() * 1000000000) + 1),
+      ref: "STUDIO-" + Math.floor((Math.random() * 1000000000) + 1),
+      metadata: {
+         custom_fields: [
+            {
+                display_name: "Cart ID",
+                variable_name: "cart_id",
+                value: "{{ cart_id }}"
+            }
+         ]
+      },
       callback: function(response) {
-        // Redirect to success URL with reference
         const successUrl = "{% url 'complete_purchase' %}";
         window.location.href = successUrl + "?reference=" + response.reference;
-      },
-      onClose: function() {
-        console.log('Transaction cancelled');
       }
     });
     handler.openIframe();

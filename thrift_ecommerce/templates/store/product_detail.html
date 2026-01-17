@@ -1,77 +1,137 @@
 {% extends 'base.html' %}
 {% block content %}
+<style>
+    /* Carousel logic */
+    .product-carousel {
+        scroll-snap-type: x mandatory;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .product-carousel::-webkit-scrollbar { display: none; }
+    .product-carousel div { scroll-snap-align: start; }
+</style>
+
 <div class="max-w-7xl mx-auto px-6 py-12">
     <div class="flex flex-col lg:flex-row gap-12">
         
         <div class="lg:w-1/2">
             <div class="sticky top-24">
-                <div class="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100 shadow-sm border border-gray-100">
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                <div class="relative group aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-gray-100 shadow-sm border border-gray-100">
+                    
+                    <div id="carousel" class="product-carousel flex overflow-x-auto h-full w-full">
+                        <div id="slide-1" class="min-w-full h-full">
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                        </div>
+                        
+                        {% if product.image_hover %}
+                        <div id="slide-2" class="min-w-full h-full">
+                            <img src="{{ product.image_hover.url }}" alt="{{ product.name }} view 2" class="w-full h-full object-cover">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if product.image_hover %}
+                    <div class="absolute inset-y-0 inset-x-4 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                        <a href="#slide-1" class="pointer-events-auto w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" /></svg>
+                        </a>
+                        <a href="#slide-2" class="pointer-events-auto w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" /></svg>
+                        </a>
+                    </div>
+
+                    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                        <a href="#slide-1" class="w-1.5 h-1.5 rounded-full bg-white/40 hover:bg-white transition-all"></a>
+                        <a href="#slide-2" class="w-1.5 h-1.5 rounded-full bg-white/40 hover:bg-white transition-all"></a>
+                    </div>
+                    {% endif %}
+
+                    {% if product.original_price %}
+                    <span class="absolute top-6 left-6 bg-red-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase italic tracking-widest shadow-lg z-10">
+                        Drop Sale
+                    </span>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
         <div class="lg:w-1/2 space-y-8">
             <div>
-                <nav class="flex text-sm text-gray-400 mb-4 uppercase tracking-widest font-bold">
-                    <a href="{% url 'dashboard' %}" class="hover:text-purple-600">Shop</a>
-                    <span class="mx-2">/</span>
+                <nav class="flex text-[10px] text-gray-400 mb-4 uppercase tracking-[0.2em] font-black">
+                    <a href="{% url 'dashboard' %}" class="hover:text-purple-600 transition">Shop</a>
+                    <span class="mx-3 text-gray-200">/</span>
                     <span>{{ product.category }}</span>
                 </nav>
-                <h1 class="text-4xl font-black text-gray-900 leading-tight">{{ product.name }}</h1>
-                <p class="text-3xl font-black text-purple-700 mt-4">${{ product.price }}</p>
+                <h1 class="text-4xl md:text-5xl font-black text-gray-900 leading-[1.1] tracking-tighter uppercase italic">{{ product.name }}</h1>
+                
+                <div class="flex items-baseline gap-4 mt-6">
+                    <p class="text-4xl font-black text-purple-700">₦{{ product.price }}</p>
+                    {% if product.original_price %}
+                    <p class="text-xl font-bold text-gray-300 line-through italic">₦{{ product.original_price }}</p>
+                    {% endif %}
+                </div>
             </div>
 
-            <div class="border-t border-b border-gray-100 py-6 space-y-4">
+            <div class="border-t border-b border-gray-50 py-8 space-y-5">
                 <div class="flex items-center justify-between">
-                    <span class="text-gray-500 font-medium">Available Size</span>
-                    <span class="bg-purple-50 text-purple-700 px-4 py-1 rounded-full font-bold border border-purple-100">
+                    <span class="text-[11px] font-black uppercase tracking-widest text-gray-400">Selected Size</span>
+                    <span class="bg-gray-900 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest">
                         {{ product.size }}
                     </span>
                 </div>
+                
                 <div class="flex items-center justify-between">
-                    <span class="text-gray-500 font-medium">Condition</span>
-                    <span class="text-gray-900 font-bold">Excellent Thrift Quality</span>
+                    <span class="text-[11px] font-black uppercase tracking-widest text-gray-400">Availability</span>
+                    {% if product.quantity > 0 %}
+                        {% if product.quantity < 3 %}
+                            <span class="text-orange-500 text-[11px] font-black uppercase italic animate-pulse">Only {{ product.quantity }} left</span>
+                        {% else %}
+                            <span class="text-green-500 text-[11px] font-black uppercase italic">In Stock</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-red-500 text-[11px] font-black uppercase italic">Sold Out</span>
+                    {% endif %}
                 </div>
             </div>
 
             <div class="space-y-4">
-                <h3 class="font-bold text-gray-900">Description</h3>
-                <p class="text-gray-500 leading-relaxed">
+                <h3 class="text-[11px] font-black uppercase tracking-widest text-gray-900">The Story</h3>
+                <p class="text-gray-500 leading-relaxed text-sm font-medium">
                     {{ product.description|default:"This is a hand-picked, premium thrift piece curated specifically for your style profile. Sustainable, unique, and ready for a new home." }}
                 </p>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4 pt-6">
-                <a href="{% url 'add_to_cart' product.id %}" class="flex-1 bg-purple-600 text-white py-5 rounded-2xl font-bold text-center shadow-xl shadow-purple-100 hover:bg-black transition-all transform hover:-translate-y-1">
+                {% if product.quantity > 0 %}
+                <a href="{% url 'add_to_cart' product.id %}" class="flex-1 bg-gray-900 text-white py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] text-center shadow-2xl shadow-gray-200 hover:bg-purple-600 transition-all transform hover:-translate-y-1">
                     Add to Bag
                 </a>
-                <a href="{% url 'toggle_wishlist' product.id %}" class="px-8 py-5 border-2 border-gray-100 rounded-2xl flex items-center justify-center hover:border-red-200 hover:bg-red-50 transition-all group">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 group-hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {% else %}
+                <button disabled class="flex-1 bg-gray-100 text-gray-400 py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] cursor-not-allowed">
+                    Out of Stock
+                </button>
+                {% endif %}
+                
+                <a href="{% url 'toggle_wishlist' product.id %}" class="px-10 py-6 border border-gray-100 rounded-[2rem] flex items-center justify-center hover:bg-red-50 hover:border-red-100 transition-all group">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 group-hover:text-red-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
                 </a>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 pt-6">
-                <div class="bg-gray-50 p-4 rounded-xl flex items-center space-x-3">
-                    <span class="text-2xl">⚡</span>
-                    <span class="text-xs font-bold text-gray-600 uppercase tracking-tighter">Fast Shipping</span>
-                </div>
-                <div class="bg-gray-50 p-4 rounded-xl flex items-center space-x-3">
-                    <span class="text-2xl">♻️</span>
-                    <span class="text-xs font-bold text-gray-600 uppercase tracking-tighter">100% Sustainable</span>
-                </div>
             </div>
         </div>
     </div>
 </div>
 
-<section class="max-w-7xl mx-auto px-6 py-20 border-t border-gray-50">
-    <h3 class="text-2xl font-black mb-10">You might also love</h3>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+<section class="max-w-7xl mx-auto px-6 py-24 border-t border-gray-50">
+    <div class="mb-12">
+        <h3 class="text-[10px] font-black text-purple-600 uppercase tracking-[0.3em] mb-2">Selected for you</h3>
+        <h2 class="text-3xl font-black tracking-tighter uppercase italic">You might also love</h2>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
         {% for item in related_products %}
             {% include 'store/partials/product_card.html' with product=item %}
+        {% empty %}
+            <p class="text-xs font-bold text-gray-400 uppercase italic">Exploring more pieces...</p>
         {% endfor %}
     </div>
 </section>

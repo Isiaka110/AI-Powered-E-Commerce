@@ -1,67 +1,93 @@
 {% extends 'base.html' %}
-{% load static %}
-
 {% block content %}
-<header class="max-w-7xl mx-auto px-6 py-16 lg:py-24 flex flex-col lg:flex-row items-center">
-    <div class="lg:w-1/2 text-center lg:text-left">
-        <span class="text-purple-600 font-bold uppercase tracking-widest text-sm">Personalized Thrift for Women</span>
-        <h2 class="text-6xl font-extrabold mt-4 mb-6 leading-tight text-gray-900">
-            Quality Thrift that <br> <span class="text-purple-600 underline">Actually Fits.</span>
-        </h2>
-        <p class="text-xl text-gray-500 mb-10 max-w-lg">
-            Stop scrolling through clothes that aren't your size. Share your fit, and our AI will curate a personalized rack just for you.
+
+<div class="relative overflow-hidden bg-brand-900 text-white">
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-6 py-24 md:py-32 flex flex-col items-center text-center">
+        <span class="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-brand-100 text-[10px] font-bold uppercase tracking-[0.2em] mb-6">
+            ✨ Sustainable Fashion Meets AI
+        </span>
+        
+        <h1 class="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
+            Thrift smarter, <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-pink-200">fit better.</span>
+        </h1>
+        
+        <p class="text-lg md:text-xl text-brand-100 max-w-2xl mb-10 leading-relaxed">
+            We use AI to scan thousands of pre-loved items and match them to your unique measurements and style profile.
         </p>
 
-        <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+        <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
             {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="inline-block bg-purple-700 text-white text-xl px-10 py-5 rounded-2xl shadow-xl hover:bg-purple-800 transition transform hover:-translate-y-1">
-                    Enter My Shop →
+                <a href="{% url 'dashboard' %}" class="bg-white text-brand-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-xl shadow-brand-900/50">
+                    Go to Your Dashboard
                 </a>
             {% else %}
-                <a href="{% url 'signup' %}" class="inline-block bg-purple-700 text-white text-xl px-10 py-5 rounded-2xl shadow-xl hover:bg-purple-800 transition transform hover:-translate-y-1">
-                    Start My Fit Profile →
+                <a href="{% url 'signup' %}" class="bg-white text-brand-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-xl shadow-brand-900/50">
+                    Get Started
                 </a>
-                <a href="{% url 'login' %}" class="inline-block bg-white text-purple-700 border-2 border-purple-100 text-xl px-10 py-5 rounded-2xl hover:bg-purple-50 transition">
-                    Log In
+                <a href="{% url 'login' %}" class="px-8 py-4 rounded-xl font-bold text-lg text-white border border-white/30 hover:bg-white/10 transition">
+                    Sign In
                 </a>
             {% endif %}
         </div>
     </div>
+</div>
 
-    <div class="lg:w-1/2 mt-16 lg:mt-0 relative flex justify-center">
-        <div class="w-72 h-96 bg-purple-100 rounded-3xl absolute -rotate-6 z-0"></div>
-        <div class="w-72 h-96 bg-gray-200 rounded-3xl z-10 overflow-hidden shadow-2xl border-4 border-white">
-             <img src="{% static 'images/owner.jpg' %}" alt="Founder" class="w-full h-full object-cover">
-        </div>
-        <div class="absolute bottom-[-20px] z-20 bg-white p-4 rounded-xl shadow-lg border border-purple-50">
-            <p class="text-purple-900 font-bold">"Fashion is better when it's personal."</p>
-            <p class="text-gray-400 text-sm">— Your Curator</p>
-        </div>
-    </div>
-</header>
-
-<section class="bg-purple-50 py-20 mt-10">
+<section class="py-20 bg-white">
     <div class="max-w-7xl mx-auto px-6">
-        <div class="text-center mb-16">
-            <h3 class="text-3xl font-bold text-gray-900">Your Journey to the Perfect Fit</h3>
-        </div>
-        <div class="grid md:grid-cols-3 gap-12">
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-purple-100 text-center">
-                <div class="text-4xl mb-4">📏</div>
-                <h4 class="font-bold text-xl mb-2">1. Share Your Size</h4>
-                <p class="text-gray-500">Tell us your measurements during <a href="{% url 'signup' %}" class="text-purple-600 underline">signup</a>. No more guessing games.</p>
+        <div class="grid md:grid-cols-3 gap-12 text-center md:text-left">
+            <div class="space-y-4">
+                <div class="w-12 h-12 bg-brand-50 rounded-2xl flex items-center justify-center text-2xl mx-auto md:mx-0">📏</div>
+                <h3 class="text-xl font-black text-gray-900">True-to-Size AI</h3>
+                <p class="text-gray-500 leading-relaxed">Vintage sizes vary. Our AI analyzes garment measurements to ensure a perfect fit, regardless of the tag.</p>
             </div>
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-purple-100 text-center">
-                <div class="text-4xl mb-4">🤖</div>
-                <h4 class="font-bold text-xl mb-2">2. AI Curation</h4>
-                <p class="text-gray-500">Our system filters through thousands of items to find only what fits your unique profile.</p>
+            <div class="space-y-4">
+                <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-2xl mx-auto md:mx-0">🌿</div>
+                <h3 class="text-xl font-black text-gray-900">100% Sustainable</h3>
+                <p class="text-gray-500 leading-relaxed">Every item is rescued, cleaned, and curated. Look good while reducing your carbon footprint.</p>
             </div>
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-purple-100 text-center">
-                <div class="text-4xl mb-4">🛍️</div>
-                <h4 class="font-bold text-xl mb-2">3. Shop with Ease</h4>
-                <p class="text-gray-500">Browse your personalized dashboard and checkout securely via Paystack.</p>
+            <div class="space-y-4">
+                <div class="w-12 h-12 bg-yellow-50 rounded-2xl flex items-center justify-center text-2xl mx-auto md:mx-0">💎</div>
+                <h3 class="text-xl font-black text-gray-900">Curated Gems</h3>
+                <p class="text-gray-500 leading-relaxed">No more digging through bins. We bring the best vintage finds directly to your personalized feed.</p>
             </div>
         </div>
     </div>
 </section>
+
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="flex justify-between items-end mb-12">
+            <div>
+                <h2 class="text-3xl font-black text-gray-900">Fresh Drops</h2>
+                <p class="text-gray-500 mt-2">Just added to the collection.</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="hidden md:block text-brand-600 font-bold hover:text-brand-900">View All →</a>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {% for product in recent_products %}
+            <a href="{% url 'login' %}" class="group bg-white rounded-2xl p-3 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div class="aspect-[4/5] rounded-xl overflow-hidden mb-3 bg-gray-100">
+                    <img src="{{ product.image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                </div>
+                <h4 class="font-bold text-gray-900 truncate">{{ product.name }}</h4>
+                <p class="text-brand-600 font-black">₦{{ product.price }}</p>
+            </a>
+            {% empty %}
+            <div class="col-span-4 text-center text-gray-400 py-10">Restocking soon!</div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-8 text-center md:hidden">
+            <a href="{% url 'dashboard' %}" class="inline-block bg-white border border-gray-200 px-6 py-3 rounded-xl font-bold text-sm">View All Items</a>
+        </div>
+    </div>
+</section>
+
 {% endblock %}

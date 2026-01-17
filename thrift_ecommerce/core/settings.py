@@ -62,6 +62,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'store.context_processors.store_info', # Add this line
             ],
         },
     },
@@ -126,12 +127,23 @@ AUTH_USER_MODEL = 'store.User'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # During development, emails will print to your terminal
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'hello@thriftelegance.com'
+# core/settings.py
 
+# For development: Emails will appear in your VS Code terminal
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' 
+
+# For production (Gmail example):
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your-email@gmail.com'
+# EMAIL_HOST_PASSWORD = 'your-app-password'
+
+DEFAULT_FROM_EMAIL = 'Thrift Elegance <hello@thriftelegance.com>'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'landing'

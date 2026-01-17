@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-xl mx-auto py-24 text-center px-6">
+    <div class="w-20 h-20 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-8">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+    </div>
+    <h1 class="text-4xl font-black italic uppercase tracking-tighter mb-4">Check your Inbox</h1>
+    <p class="text-gray-500 mb-8">We've sent an activation link to your email address. Please click the link to verify your account and start shopping.</p>
+    <a href="{% url 'landing' %}" class="text-xs font-black uppercase tracking-widest text-purple-600 hover:text-purple-800">Back to Home</a>
+</div>
+{% endblock %}

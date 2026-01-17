@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.landing_page, name='landing'),
     
     # --- AUTHENTICATION ---
+    path('activate/<uidb64>/<token>/', views.activate, name='activate'),
     # Standard Django Login using a custom template
     path('login/', auth_views.LoginView.as_view(template_name='store/login.html'), name='login'),
     # Logout redirects user back to the landing page
@@ -23,9 +24,11 @@ urlpatterns = [
 
     # --- WISHLIST / FAVORITES ---
     # View to see all items the user has favorited
-    path('wishlist/', views.wishlist_view, name='wishlist'),
+ # store/urls.py
+    path('wishlist/', views.wishlist, name='wishlist_view'), # Added _view here
     # Logic-only route: adds/removes item from favorites then redirects back
     path('wishlist/toggle/<int:product_id>/', views.toggle_wishlist, name='toggle_wishlist'),
+    path('product/quick-edit/', views.quick_edit_product, name='quick_edit_product'),
 
 
     path('cart/update/<int:item_id>/<str:action>/', views.update_cart_quantity, name='update_cart_quantity'),
@@ -38,9 +41,12 @@ urlpatterns = [
     path('checkout/', views.complete_purchase, name='complete_purchase'),
     # View past successful orders
     path('orders/', views.order_history, name='order_history'),
-
+    path('order/<str:order_id>/invoice/', views.download_invoice, name='download_invoice'),
     # --- OWNER / STAFF MANAGEMENT ---
     # Dashboard for staff to manage inventory
+    path('owner/dashboard/', views.owner_dashboard, name='owner_dashboard'),
+    path('owner/product/add/', views.add_product, name='add_product'),
+    path('owner/product/edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('management/', views.owner_dashboard, name='owner_dashboard'),
     # Completely remove a product from the database
     path('management/delete/<int:product_id>/', views.delete_product, name='delete_product'),

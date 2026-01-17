@@ -1,16 +1,23 @@
 import uuid
+from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
-from .forms import SignUpForm
-from .models import Product, Order, OrderItem, Cart, CartItem # Added Cart models
-from decimal import Decimal
+
+from .forms import SignUpForm, ProductForm, StoreSettingsForm
+from .models import Product, Order, OrderItem, Cart, CartItem, StoreSettings
+
+# --- HELPER: CHECK IF OWNER ---
+def is_owner(user):
+    return user.is_superuser or user.is_staff
 
 # --- CLIENT VIEWS ---
 
 def landing_page(request):
-    return render(request, 'store/landing.html')
+    # Fetch recent products for the "Fresh Drops" section on landing
+    recent_products = Product.objects.filter(is_available=True).order_by('-created_at')[:4]
+    return render(request, 'store/landing.html', {'recent_products': recent_products})
 
 def personalized_signup(request):
     if request.method == 'POST':
@@ -26,12 +33,15 @@ def personalized_signup(request):
 @login_required
 def dashboard(request):
     user_size = request.user.preferred_size
-    recommendations = Product.objects.filter(size=user_size, is_available=True).order_by('-created_at')
-    if not recommendations.exists():
-        recommendations = Product.objects.filter(is_available=True).order_by('-created_at')
+    # AI Logic: Prioritize user's size, but show everything available
+    all_available = Product.objects.filter(is_available=True).order_by('-created_at')
+    
+    # Filter for exact matches to highlight them in the UI if needed
+    recommended = all_available.filter(size=user_size)
     
     return render(request, 'store/dashboard.html', {
-        'products': recommendations,
+        'products': all_available, # Show all, but you can highlight recommended in template
+        'recommended': recommended,
         'user_size': user_size
     })
 
@@ -59,18 +69,31 @@ def toggle_wishlist(request, product_id):
     return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
 
 @login_required
-def wishlist_view(request):
+def wishlist(request):
     products = request.user.favorites.all()
     return render(request, 'store/wishlist.html', {'products': products})
 
-# --- NEW DATABASE-BACKED CART VIEWS ---
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def quick_edit_product(request):
+    product_id = request.POST.get('product_id')
+    product = get_object_or_404(Product, id=product_id)
+    
+    product.price = request.POST.get('price')
+    product.is_available = 'is_available' in request.POST
+    product.save()
+    
+    return redirect('owner_dashboard')
+
+# --- DATABASE-BACKED CART ---
 
 @login_required
 def add_to_cart(request, product_id):
-    """Adds item to database Cart instead of session."""
     product = get_object_or_404(Product, id=product_id)
     cart, created = Cart.objects.get_or_create(user=request.user)
-    
     cart_item, item_created = CartItem.objects.get_or_create(cart=cart, product=product)
     
     if not item_created:
@@ -79,15 +102,20 @@ def add_to_cart(request, product_id):
         
     return redirect('cart')
 
+# store/views.py
+
+def shop_view(request):
+    # This ensures "Sold Out" or hidden products don't appear in the grid
+    products = Product.objects.filter(is_available=True)
+    return render(request, 'store/dashboard.html', {'products': products})
+
 @login_required
 def cart_view(request):
-    """Fetches CartItems from DB. item.id now exists for the template buttons."""
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.all()
+    total = cart.total_price
     
-    total = sum(item.get_total for item in cart_items)
-    
-    discount = 0
+    discount = Decimal('0.00')
     coupon_error = None
     if request.method == 'POST':
         code = request.POST.get('coupon_code')
@@ -107,18 +135,11 @@ def cart_view(request):
 
 @login_required
 def update_cart_quantity(request, item_id, action):
-    # Try to get the item, but don't crash if it's already gone
-    try:
-        cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
-    except CartItem.DoesNotExist:
-        return redirect('cart')
+    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
     
-    # Check if we should delete it immediately (from the "Remove Item" link)
     if request.GET.get('remove') == 'true':
         cart_item.delete()
-        return redirect('cart')
-
-    if action == 'increment':
+    elif action == 'increment':
         cart_item.quantity += 1
         cart_item.save()
     elif action == 'decrement':
@@ -132,92 +153,199 @@ def update_cart_quantity(request, item_id, action):
 
 @login_required
 def complete_purchase(request):
-    """Converts DB cart into permanent Order."""
     cart = get_object_or_404(Cart, user=request.user)
     cart_items = cart.items.all()
     
     if not cart_items.exists():
         return redirect('dashboard')
 
+    # Create Order
     order = Order.objects.create(
         user=request.user,
         order_id=str(uuid.uuid4())[:12].upper(),
-        total_paid=0,
+        total_paid=cart.total_price,
         is_completed=True
     )
 
-    grand_total = 0
     for item in cart_items:
         OrderItem.objects.create(
             order=order, 
             product=item.product, 
-            price=item.product.current_price, 
+            price=item.product.price, # Corrected field name
             quantity=item.quantity
         )
-        grand_total += item.get_total
-        
-    order.total_paid = grand_total
-    order.save()
+        # Stock Logic
+        product = item.product
+        product.quantity -= item.quantity
+        if product.quantity <= 0:
+            product.is_available = False
+        product.save()
 
-    # Clear DB cart after purchase
-    cart_items.delete()
-    
+    # SEND EMAIL RECEIPT
+    try:
+        mail_subject = f'Order Confirmed - #{order.order_id}'
+        html_message = render_to_string('emails/order_receipt.html', {
+            'user': request.user,
+            'order': order,
+        })
+        email = EmailMessage(mail_subject, html_message, to=[request.user.email])
+        email.content_subtype = "html" # Main content is now text/html
+        email.send()
+    except Exception as e:
+        print(f"Email failed: {e}")
+
+    cart_items.delete() 
     return render(request, 'store/success.html', {'order': order})
+
+
+# --- ORDER HISTORY & INVOICE ---
 
 @login_required
 def order_history(request):
-    orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'store/order_history.html', {'orders': orders})
-
-import requests # You'll need this: pip install requests
+    orders = Order.objects.filter(user=request.user, is_completed=True).order_by('-created_at')
+    total_spent = sum(order.total_paid for order in orders)
+    return render(request, 'store/order_history.html', {'orders': orders, 'total_spent': total_spent})
 
 @login_required
-def complete_purchase(request):
-    cart = get_object_or_404(Cart, user=request.user)
-    cart_items = cart.items.all()
-    
-    if not cart_items.exists():
-        return redirect('dashboard')
+def download_invoice(request, order_id):
+    order = get_object_or_404(Order, order_id=order_id, user=request.user)
+    return render(request, 'store/invoice.html', {'order': order})
 
-    total_amount = sum(item.get_total for item in cart_items)
-    
-    # This is where you would normally call the Paystack API
-    # For now, we simulate the order creation
-    order = Order.objects.create(
-        user=request.user,
-        order_id=str(uuid.uuid4())[:12].upper(),
-        total_paid=total_amount,
-        is_completed=True
-    )
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import user_passes_test
+from django.views.decorators.http import require_POST
+from .models import Product, Order, StoreSettings
+from .forms import ProductForm, StoreSettingsForm
 
-    for item in cart_items:
-        OrderItem.objects.create(
-            order=order, 
-            product=item.product, 
-            price=item.product.current_price, 
-            quantity=item.quantity
-        )
-    
-    # Clear cart
-    cart_items.delete()
-    
-    return render(request, 'store/success.html', {'order': order})
+# Helper to check if user is the owner
+def is_owner(user):
+    return user.is_authenticated and user.is_staff
 
-# --- OWNER / ADMIN VIEWS ---
+# --- OWNER STUDIO VIEWS ---
 
-@staff_member_required
+@user_passes_test(is_owner)
 def owner_dashboard(request):
     products = Product.objects.all().order_by('-created_at')
-    return render(request, 'store/owner_dashboard.html', {'products': products})
+    # Filter completed orders and take the latest 5
+    orders = Order.objects.filter(is_completed=True).order_by('-created_at')[:5]
+    total_sales = sum(o.total_paid for o in Order.objects.filter(is_completed=True))
+    settings = StoreSettings.load()
 
-@staff_member_required
+    # Handle Store Branding Update (Sidebar Form)
+    if request.method == 'POST' and 'update_settings' in request.POST:
+        settings_form = StoreSettingsForm(request.POST, request.FILES, instance=settings)
+        if settings_form.is_valid():
+            settings_form.save()
+            return redirect('owner_dashboard')
+    else:
+        settings_form = StoreSettingsForm(instance=settings)
+
+    return render(request, 'store/owner_dashboard.html', {
+        'products': products,
+        'recent_orders': orders,
+        'total_sales': total_sales,
+        'settings_form': settings_form,
+        'settings': settings
+    })
+
+@user_passes_test(is_owner)
+@require_POST # Security: Only allow POST requests for deletion
+def delete_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    product.delete()
+    return redirect('owner_dashboard')
+
+@user_passes_test(is_owner)
+@require_POST
+def quick_edit_product(request):
+    """Handles the high-speed modal updates from the dashboard."""
+    product_id = request.POST.get('product_id')
+    product = get_object_or_404(Product, id=product_id)
+    
+    # Update price and availability directly
+    product.price = request.POST.get('price')
+    product.is_available = 'is_available' in request.POST
+    product.save()
+    
+    return redirect('owner_dashboard')
+
+@user_passes_test(is_owner)
+def add_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('owner_dashboard')
+    else:
+        form = ProductForm()
+    return render(request, 'store/product_form.html', {'form': form, 'title': 'Add New Drop'})
+
+@user_passes_test(is_owner)
+def edit_product(request, product_id):
+    """Full edit page for detailed changes."""
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('owner_dashboard')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'store/product_form.html', {'form': form, 'title': f'Edit {product.name}'})
+
+@user_passes_test(is_owner)
 def delete_product(request, product_id):
     get_object_or_404(Product, id=product_id).delete()
     return redirect('owner_dashboard')
 
-@staff_member_required
+@user_passes_test(is_owner)
 def toggle_availability(request, product_id):
+    """Legacy toggle logic (kept for simple table buttons)."""
     product = get_object_or_404(Product, id=product_id)
     product.is_available = not product.is_available
     product.save()
     return redirect('owner_dashboard')
+
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import EmailMessage
+from .tokens import account_activation_token # We will create this file
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = False # Deactivate account until email is verified
+            user.save()
+            
+            # Send Verification Email
+            current_site = get_current_site(request)
+            mail_subject = 'Activate your Thrift Elegance Account'
+            message = render_to_string('emails/acc_active_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': account_activation_token.make_token(user),
+            })
+            email = EmailMessage(mail_subject, message, to=[user.email])
+            email.send()
+            return render(request, 'store/verify_email_sent.html')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/signup.html', {'form': form})
+
+def activate(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return render(request, 'store/activation_success.html')
+    else:
+        return render(request, 'store/activation_invalid.html')

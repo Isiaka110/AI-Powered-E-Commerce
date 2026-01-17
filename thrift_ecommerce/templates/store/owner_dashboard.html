@@ -1,50 +1,273 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="max-w-7xl mx-auto py-10 px-6">
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold">Inventory Management</h1>
-        <a href="/admin/store/product/add/" class="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold">+ Add New Product</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Owner Studio | {{ settings.store_name }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+    <div class="flex h-screen overflow-hidden flex-col md:flex-row">
+        
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col">
+            <div class="p-6 flex justify-between items-center">
+                <div>
+                    {% if settings.logo %}
+                        <img src="{{ settings.logo.url }}" class="h-8 mb-2 object-contain">
+                    {% else %}
+                        <h2 class="text-xl font-black tracking-tighter text-purple-400 uppercase italic">Owner Studio</h2>
+                    {% endif %}
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{{ settings.store_name }}</p>
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+                <a href="{% url 'owner_dashboard' %}" class="flex items-center px-4 py-3 bg-purple-600 rounded-xl font-bold text-sm shadow-lg shadow-purple-600/20">
+                    Dashboard
+                </a>
+                <a href="{% url 'add_product' %}" class="flex items-center px-4 py-3 hover:bg-gray-800 rounded-xl transition text-sm text-gray-300">
+                    Add Product
+                </a>
+                <div class="pt-4 mt-4 border-t border-gray-800">
+                    <p class="px-4 text-[10px] font-black text-gray-500 uppercase mb-2">Navigation</p>
+                    <a href="{% url 'dashboard' %}" class="flex items-center px-4 py-3 hover:bg-gray-800 rounded-xl transition text-sm text-gray-300 italic">
+                        ← Back to Shop Feed
+                    </a>
+                </div>
+            </nav>
+
+            <div class="p-4 border-t border-gray-800">
+                <form action="{% url 'logout' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full flex items-center justify-center px-4 py-3 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-xl transition font-bold text-sm uppercase tracking-widest">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto relative bg-[#F9FAFB]">
+            
+            <div class="md:hidden bg-gray-900 text-white p-4 flex justify-between items-center sticky top-0 z-40 border-b border-gray-800">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="text-purple-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                    <h1 class="font-black text-sm uppercase italic tracking-tighter">Studio</h1>
+                </div>
+                <a href="{% url 'add_product' %}" class="bg-purple-600 px-4 py-2 rounded-full text-xs font-black uppercase tracking-tight shadow-lg shadow-purple-600/20">+ New Drop</a>
+            </div>
+
+            <div class="p-6 md:p-10 max-w-7xl mx-auto">
+                
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
+                    <div class="grid grid-cols-2 gap-4 w-full lg:w-auto">
+                        <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 min-w-[160px]">
+                            <p class="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">Total Revenue</p>
+                            <h3 class="text-xl font-black text-gray-900">₦{{ total_sales }}</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 min-w-[160px]">
+                            <p class="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">Items Count</p>
+                            <h3 class="text-xl font-black text-gray-900">{{ products.count }}</h3>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm w-full lg:w-auto">
+                        <button onclick="filterTable('all')" class="filter-btn flex-1 lg:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white transition">All</button>
+                        <button onclick="filterTable('active')" class="filter-btn flex-1 lg:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition">Active</button>
+                        <button onclick="filterTable('sold')" class="filter-btn flex-1 lg:flex-none px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition">Sold</button>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-10">
+                    
+                    <div class="lg:col-span-2 space-y-8">
+                        <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left" id="inventoryTable">
+                                    <thead class="bg-gray-50/50 border-b border-gray-100 text-[10px] uppercase font-black text-gray-400 tracking-widest">
+                                        <tr>
+                                            <th class="p-5">Item</th>
+                                            <th class="p-5 hidden sm:table-cell">Pricing</th>
+                                            <th class="p-5 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-50">
+                                        {% for product in products %}
+                                        <tr class="hover:bg-gray-50/30 transition group product-row" data-status="{% if product.is_available %}active{% else %}sold{% endif %}">
+                                            <td class="p-5 flex items-center gap-4">
+                                                <div class="relative flex-shrink-0">
+                                                    <img src="{{ product.image.url }}" class="w-14 h-14 rounded-2xl object-cover bg-gray-100 shadow-sm">
+                                                    {% if product.image_hover %}
+                                                        <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <p class="font-bold text-sm text-gray-900 leading-tight">{{ product.name }}</p>
+                                                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">{{ product.size }} — Qty: {{ product.quantity }}</p>
+                                                </div>
+                                            </td>
+                                            <td class="p-5 hidden sm:table-cell">
+                                                <div class="flex flex-col">
+                                                    <span class="font-black text-sm text-gray-900">₦{{ product.price }}</span>
+                                                    {% if product.original_price %}
+                                                        <span class="text-[9px] text-gray-400 line-through font-bold uppercase tracking-tighter italic">Was ₦{{ product.original_price }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td class="p-5 text-right flex items-center justify-end gap-3">
+                                                <a href="{% url 'edit_product' product.id %}" class="bg-gray-100 px-4 py-2 rounded-xl text-gray-600 font-bold text-xs hover:bg-purple-600 hover:text-white transition">Edit</a>
+                                                <form action="{% url 'delete_product' product.id %}" method="POST" onsubmit="return confirm('Delete this item?');" class="inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="p-2 text-gray-300 hover:text-red-500 transition">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-gray-900 text-white p-6 rounded-[2rem] shadow-xl relative overflow-hidden">
+                                <div class="relative z-10">
+                                    <h3 class="text-[9px] font-black uppercase tracking-[0.2em] text-purple-400 mb-4">Site-Wide Announcement</h3>
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="form_type" value="banner_update">
+                                        <textarea name="banner_text" rows="2" class="w-full bg-gray-800 border-none rounded-2xl p-4 text-xs font-bold mb-4 focus:ring-1 focus:ring-purple-500 outline-none" placeholder="e.g. 20% OFF ALL VINTAGE ITEMS THIS WEEKEND">{{ active_banner.text }}</textarea>
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <input type="checkbox" name="is_visible" id="banner_vis" {% if active_banner.is_visible %}checked{% endif %} class="w-4 h-4 rounded border-gray-700 bg-gray-800 text-purple-600">
+                                                <label for="banner_vis" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Visible to Clients</label>
+                                            </div>
+                                            <button class="bg-purple-600 hover:bg-purple-500 px-5 py-2 rounded-xl text-[10px] font-black uppercase transition">Update</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="absolute -right-4 -bottom-4 text-gray-800 opacity-20">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col justify-between">
+                                <h3 class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Active Promo Code</h3>
+                                <form method="POST" class="space-y-4">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="form_type" value="promo_update">
+                                    <div class="flex gap-2">
+                                        <input type="text" name="code" value="{{ active_promo.code }}" class="flex-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest outline-none focus:border-purple-200" placeholder="CODE">
+                                        <div class="relative w-24">
+                                            <input type="number" name="discount" value="{{ active_promo.discount_percentage }}" class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs font-black outline-none focus:border-purple-200" placeholder="0">
+                                            <span class="absolute right-3 top-3.5 text-[10px] font-black text-gray-300">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" name="is_active" id="promo_act" {% if active_promo.is_active %}checked{% endif %} class="w-4 h-4 rounded border-gray-200 text-purple-600">
+                                            <label for="promo_act" class="text-[10px] font-bold text-gray-400 uppercase">Active</label>
+                                        </div>
+                                        <button class="bg-gray-900 hover:bg-black text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase transition">Save Code</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <section class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
+                            <h2 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-6">Store Branding</h2>
+                            <form method="POST" enctype="multipart/form-data" class="space-y-5">
+                                {% csrf_token %}
+                                <input type="hidden" name="update_settings" value="true"> <div>
+                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Display Name</label>
+                                    <input type="text" name="store_name" value="{{ settings.store_name }}" class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none transition">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Logo File</label>
+                                    <input type="file" name="logo" class="text-[10px] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-purple-50 file:text-purple-700">
+                                </div>
+                                <button type="submit" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-purple-600 shadow-xl shadow-purple-500/10 transition transform active:scale-[0.98]">
+                                    Update Studio
+                                </button>
+                            </form>
+                        </section>
+
+                        <section>
+                            <h2 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-5 px-2">Recent Sales</h2>
+                            <div class="space-y-3">
+                                {% for order in recent_orders %}
+                                <div class="bg-white p-4 rounded-2xl border border-gray-100 flex justify-between items-center hover:shadow-md transition">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-[11px] font-black text-gray-900 uppercase">#{{ order.order_id|default:order.id }}</p>
+                                            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tight">{{ order.created_at|timesince }} ago</p>
+                                        </div>
+                                    </div>
+                                    <span class="font-black text-gray-900 text-sm">₦{{ order.total_paid }}</span>
+                                </div>
+                                {% empty %}
+                                <div class="p-8 rounded-[2rem] border border-dashed border-gray-200 text-center bg-white">
+                                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest">No activity</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    </div>
+
+                </div>
+            </div>
+        </main>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <table class="w-full text-left">
-            <thead class="bg-gray-50 border-b">
-                <tr>
-                    <th class="p-4 text-sm font-bold text-gray-500">Product</th>
-                    <th class="p-4 text-sm font-bold text-gray-500">Size</th>
-                    <th class="p-4 text-sm font-bold text-gray-500">Original Price</th>
-                    <th class="p-4 text-sm font-bold text-gray-500">Sale Price</th>
-                    <th class="p-4 text-sm font-bold text-gray-500">Status</th>
-                    <th class="p-4 text-sm font-bold text-gray-500">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y">
-                {% for product in products %}
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="p-4 flex items-center space-x-3">
-                        <img src="{{ product.image.url }}" class="w-10 h-10 rounded object-cover">
-                        <span class="font-medium">{{ product.name }}</span>
-                    </td>
-                    <td class="p-4 text-gray-600">{{ product.size }}</td>
-                    <td class="p-4 text-gray-600">${{ product.price }}</td>
-                    <td class="p-4">
-                        <span class="text-green-600 font-bold">{% if product.discount_price %}${{ product.discount_price }}{% else %}-{% endif %}</span>
-                    </td>
-                    <td class="p-4">
-                        {% if product.is_available %}
-                        <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Live</span>
-                        {% else %}
-                        <span class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">Sold Out</span>
-                        {% endif %}
-                    </td>
-                    <td class="p-4 space-x-2">
-                        <a href="{% url 'toggle_availability' product.id %}" class="text-xs font-bold text-purple-600">Toggle Status</a>
-                        <a href="{% url 'delete_product' product.id %}" class="text-xs font-bold text-red-500" onclick="return confirm('Delete this item?')">Remove</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-{% endblock %}
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        function filterTable(status) {
+            const rows = document.querySelectorAll('.product-row');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-gray-900', 'text-white');
+                btn.classList.add('text-gray-400');
+                if(btn.innerText.toLowerCase() === status) {
+                    btn.classList.remove('text-gray-400');
+                    btn.classList.add('bg-gray-900', 'text-white');
+                }
+            });
+
+            rows.forEach(row => {
+                if (status === 'all' || row.dataset.status === status) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

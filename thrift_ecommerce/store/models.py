@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.conf import settings # Use this to reference your custom User
+from django.conf import settings
 
-# 1. Global Choices
+# --- EDITABLE CONFIGURATION ---
+# To add/remove sizes, simply update these lists.
 SIZE_CHOICES = (
     ('XS', 'Extra Small'),
     ('S', 'Small'),
@@ -20,7 +21,25 @@ CATEGORY_CHOICES = (
     ('ACC', 'Accessories'),
 )
 
-# 2. Custom User Model
+# --- 1. STORE BRANDING MODEL ---
+class StoreSettings(models.Model):
+    """Global settings for the platform owner to manage branding."""
+    store_name = models.CharField(max_length=100, default="ThriftElegance")
+    logo = models.ImageField(upload_to='store_assets/', blank=True, null=True)
+    
+    class Meta:
+        verbose_name_plural = "Store Settings"
+
+    def __str__(self):
+        return self.store_name
+
+    @classmethod
+    def load(cls):
+        """Loads the single instance of settings or creates one."""
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+# --- 2. CUSTOM USER MODEL ---
 class User(AbstractUser):
     email = models.EmailField(unique=True) 
     preferred_size = models.CharField(
@@ -37,16 +56,29 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
-# 3. Product Model
+# --- 3. PRODUCT MODEL ---
 class Product(models.Model):
+    # Core Info
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True, help_text="Detailed info for the Product Page")
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    image = models.ImageField(upload_to='products/') 
-    size = models.CharField(max_length=5, choices=SIZE_CHOICES)
-    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES, default='DRESS')
+    
+    # Pricing (Support larger Naira values)
+    price = models.DecimalField(max_digits=12, decimal_places=2, help_text="The current selling price")
+    original_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Slashed price (e.g., 50000)")
+    
+    # Inventory
+    quantity = models.PositiveIntegerField(default=1, help_text="How many units are in stock")
     is_available = models.BooleanField(default=True)
+    
+    # Media
+    image = models.ImageField(upload_to='products/', help_text="Primary display image") 
+    image_hover = models.ImageField(upload_to='products/', blank=True, null=True, help_text="Secondary/Detail image")
+    
+    # Attributes
+    size = models.CharField(max_length=10, choices=SIZE_CHOICES) # Increased max_length for safety
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='DRESS')
+    
+    # Meta
     favorites = models.ManyToManyField(User, related_name="favorites", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -54,62 +86,65 @@ class Product(models.Model):
         return f"{self.name} ({self.size})"
 
     @property
-    def current_price(self):
-        if self.discount_price:
-            return self.discount_price
-        return self.price
+    def on_sale(self):
+        """Returns True if there is a slashed price higher than the current price."""
+        return self.original_price is not None and self.original_price > self.price
 
-# --- NEW MODELS ADDED BELOW ---
+    @property
+    def is_out_of_stock(self):
+        """Helper to check stock levels."""
+        return self.quantity == 0
 
-# 4. Cart Model
+    def save(self, *args, **kwargs):
+        """Auto-disable availability if quantity hits zero."""
+        if self.quantity == 0:
+            self.is_available = False
+        super().save(*args, **kwargs)
+
+
+class PromoCode(models.Model):
+    code = models.CharField(max_length=20, unique=True)
+    discount_percentage = models.PositiveIntegerField(help_text="e.g., 10 for 10% off")
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.code} (-{self.discount_percentage}%)"
+
+class SiteBanner(models.Model):
+    text = models.CharField(max_length=255, help_text="Announcement text")
+    sub_text = models.CharField(max_length=255, blank=True)
+    is_visible = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+# --- 4. CART & ITEMS ---
 class Cart(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cart')
     created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Cart: {self.user.email}"
 
     @property
     def total_price(self):
         return sum(item.get_total for item in self.items.all())
 
-# 5. Cart Item Model (This fixes your ImportError)
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
 
-    def __str__(self):
-        return f"{self.quantity} x {self.product.name}"
-
     @property
     def get_total(self):
-        return self.product.current_price * self.quantity
+        return self.product.price * self.quantity
 
-# --- EXISTING ORDER MODELS ---
-
-# 6. Order Model
+# --- 5. ORDER & ITEMS ---
 class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     created_at = models.DateTimeField(auto_now_add=True)
-    total_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    total_paid = models.DecimalField(max_digits=12, decimal_places=2)
     order_id = models.CharField(max_length=100, unique=True)
     is_completed = models.BooleanField(default=False)
     payment_date = models.DateTimeField(null=True, blank=True)
 
-    def __str__(self):
-        return f"Order {self.order_id} by {self.user.email}"
-
-# 7. Order Item Model
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
     quantity = models.PositiveIntegerField(default=1)
-
-    def __str__(self):
-        return f"{self.quantity} x {self.product.name if self.product else 'Deleted Item'}"
-
-    @property
-    def get_total(self):
-        return self.price * self.quantity

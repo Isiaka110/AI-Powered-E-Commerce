@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-xl mx-auto py-24 text-center px-6">
+    <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
+    </div>
+    <h1 class="text-4xl font-black italic uppercase tracking-tighter mb-4">Account Verified!</h1>
+    <p class="text-gray-500 mb-8">Your email has been confirmed. You can now log in and explore our curated thrift collections.</p>
+    <a href="{% url 'login' %}" class="bg-black text-white px-12 py-5 rounded-full font-black text-xs uppercase tracking-widest inline-block hover:bg-purple-600 transition">
+        Log In Now
+    </a>
+</div>
+{% endblock %}
