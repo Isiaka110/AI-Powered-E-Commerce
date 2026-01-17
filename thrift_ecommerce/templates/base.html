@@ -12,29 +12,26 @@
                         brand: {
                             50: '#f5f3ff',  // Very Light (Backgrounds)
                             100: '#ede9fe', // Light (Borders)
-                            500: '#8b5cf6', // Main Brand Color (Buttons, Links)
+                            500: '#8b5cf6', // Main Brand Color
                             600: '#7c3aed', // Hover States
                             900: '#4c1d95', // Dark (Footer, Headers)
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'], // You can change font here
+                        sans: ['Inter', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
-    <title>ThriftElegance</title>
+    <title>{{ store.store_name|default:"ThriftElegance" }}</title>
     <style>
-        /* Mobile Menu Animation */
         #mobile-menu {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        #mobile-menu.open { max-height: 400px; }
-        
-        /* Hide Scrollbar for horizontal scrollers */
+        #mobile-menu.open { max-height: 500px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -42,145 +39,163 @@
 <body class="bg-gray-50 flex flex-col min-h-screen">
 
     <nav class="bg-white border-b border-brand-50 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 md:px-10 py-4 flex justify-between items-center">
-        
-        <a href="{% url 'landing' %}" class="flex items-center shrink-0">
-            {% if store.logo %}
-                <img src="{{ store.logo.url }}" alt="{{ store.store_name }}" class="h-8 md:h-10 w-auto object-contain">
-            {% else %}
-                <span class="text-xl md:text-2xl font-black text-brand-600 tracking-tighter uppercase">
-                    {{ store.store_name|slice:":-8" }}<span class="text-gray-300">{{ store.store_name|slice:"-8:" }}</span>
+        <div class="max-w-7xl mx-auto px-4 md:px-10 py-4 flex justify-between items-center">
+            
+            <a href="{% url 'landing' %}" class="flex items-center shrink-0 space-x-3">
+                {% if store.logo %}
+                    <img src="{{ store.logo.url }}" alt="{{ store.store_name }}" class="h-8 md:h-10 w-auto object-contain rounded">
+                {% endif %}
+                <span class="text-xl md:text-2xl font-black text-brand-600 tracking-tighter uppercase italic">
+                    {{ store.store_name|default:"ThriftElegance" }}
                 </span>
-            {% endif %}
-        </a>
+            </a>
 
-        <div class="hidden md:flex items-center space-x-10 text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">
-            <a href="{% url 'dashboard' %}" class="hover:text-brand-600 transition">Shop Feed</a>
-            <a href="{% url 'order_history' %}" class="hover:text-brand-600 transition">My Orders</a>
+            <div class="hidden md:flex items-center space-x-10 text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">
+                <a href="{% url 'dashboard' %}" class="hover:text-brand-600 transition">Shop Feed</a>
+                <a href="{% url 'order_history' %}" class="hover:text-brand-600 transition">My Orders</a>
+                <a href="{% url 'profile_settings' %}" class="hover:text-brand-600 transition">Settings</a>
+                
+                {% if user.is_staff %}
+                    <a href="{% url 'owner_dashboard' %}" class="bg-brand-50 text-brand-600 px-3 py-1 rounded-full hover:bg-brand-100 transition">Owner Studio</a>
+                {% endif %}
+            </div>
             
-            {% if user.is_staff %}
-                <a href="{% url 'owner_dashboard' %}" class="bg-brand-50 text-brand-600 px-3 py-1 rounded-full hover:bg-brand-100 transition">Owner Studio</a>
-            {% endif %}
-        </div>
-        
-        <div class="flex items-center space-x-3 md:space-x-6">
-            {% if user.is_authenticated %}
-                <a href="{% url 'wishlist_view' %}" class="text-gray-400 hover:text-brand-600 transition p-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                </a>
+            <div class="flex items-center space-x-3 md:space-x-6">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'wishlist_view' %}" class="text-gray-400 hover:text-brand-600 transition p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </a>
 
-                <a href="{% url 'cart' %}" class="relative text-gray-400 hover:text-brand-600 transition p-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
-                    {% if user.cart.items.count > 0 %}
-                    <span class="absolute -top-1 -right-1 bg-brand-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border-2 border-white">
-                        {{ user.cart.items.count }}
-                    </span>
-                    {% endif %}
-                </a>
+                    <a href="{% url 'cart' %}" class="relative text-gray-400 hover:text-brand-600 transition p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        {% if cart_items|length > 0 %}
+                        <span class="absolute -top-1 -right-1 bg-brand-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border-2 border-white">
+                            {{ cart_items|length }}
+                        </span>
+                        {% endif %}
+                    </a>
 
-                <div class="h-6 w-[1px] bg-gray-100 hidden md:block"></div>
+                    <div class="h-6 w-[1px] bg-gray-100 hidden md:block"></div>
 
-                <form id="logout-form-desktop" action="{% url 'logout' %}" method="POST" class="hidden md:block">
-                    {% csrf_token %}
-                    <button type="submit" class="text-[10px] font-black text-gray-400 hover:text-red-500 uppercase tracking-widest transition">
-                        Logout
+                    <form action="{% url 'logout' %}" method="POST" class="hidden md:block">
+                        {% csrf_token %}
+                        <button type="submit" class="text-[10px] font-black text-gray-400 hover:text-red-500 uppercase tracking-widest transition">
+                            Logout
+                        </button>
+                    </form>     
+
+                    <button onclick="toggleMenu()" class="md:hidden text-gray-900 p-1 focus:outline-none">
+                        <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
                     </button>
-                </form>     
-
-                <button onclick="toggleMenu()" class="md:hidden text-gray-900 p-1 focus:outline-none">
-                    <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
-                    </svg>
-                </button>
-            {% else %}
-                <a href="{% url 'login' %}" class="font-black text-white bg-brand-600 px-6 py-2 rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-brand-100 hover:bg-brand-700 transition">Login</a>
-            {% endif %}
-        </div>
-    </div>
-
-    <div id="mobile-menu" class="md:hidden bg-white border-t border-gray-50 transition-all duration-300">
-        <div class="px-8 py-8 flex flex-col space-y-6 font-black text-gray-900 uppercase tracking-tighter text-xl">
-            <a href="{% url 'dashboard' %}" class="flex items-center justify-between">Shop Feed <span class="text-brand-500">→</span></a>
-            <a href="{% url 'order_history' %}" class="flex items-center justify-between">My Orders <span class="text-brand-500">→</span></a>
-            <a href="{% url 'wishlist_view' %}" class="flex items-center justify-between">Wishlist <span class="text-brand-500">→</span></a>
-            
-            {% if user.is_staff %}
-                <a href="{% url 'owner_dashboard' %}" class="text-brand-600">Owner Dashboard</a>
-            {% endif %}
-
-            <div class="pt-6 border-t border-gray-50">
-                <form action="{% url 'logout' %}" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="text-red-400 text-sm font-black uppercase tracking-widest">
-                        Sign Out
-                    </button>
-                </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="font-black text-white bg-brand-600 px-6 py-2 rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-brand-100 hover:bg-brand-700 transition">Login</a>
+                {% endif %}
             </div>
         </div>
+
+        <div id="mobile-menu" class="md:hidden bg-white border-t border-gray-50 transition-all duration-300">
+            <div class="px-8 py-8 flex flex-col space-y-6 font-black text-gray-900 uppercase tracking-tighter text-xl italic">
+                <a href="{% url 'dashboard' %}" class="flex items-center justify-between">Shop Feed <span class="text-brand-500 text-sm italic">→</span></a>
+                <a href="{% url 'order_history' %}" class="flex items-center justify-between">My Orders <span class="text-brand-500 text-sm italic">→</span></a>
+                <a href="{% url 'wishlist_view' %}" class="flex items-center justify-between">Wishlist <span class="text-brand-500 text-sm italic">→</span></a>
+                <a href="{% url 'profile_settings' %}" class="flex items-center justify-between">Account Settings <span class="text-brand-500 text-sm italic">→</span></a>
+                
+                {% if user.is_staff %}
+                    <a href="{% url 'owner_dashboard' %}" class="text-brand-600">Owner Dashboard</a>
+                {% endif %}
+
+                <div class="pt-6 border-t border-gray-50">
+                    <form action="{% url 'logout' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="text-red-400 text-sm font-black uppercase tracking-widest">
+                            Sign Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 mt-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-2xl mb-4 flex items-center justify-between shadow-sm animate-pulse
+            {% if message.tags == 'success' %}bg-green-50 text-green-700 border border-green-100
+            {% elif message.tags == 'warning' %}bg-amber-50 text-amber-700 border border-amber-100
+            {% else %}bg-brand-50 text-brand-700 border border-brand-100{% endif %}">
+            <span class="text-[10px] font-black uppercase tracking-widest">{{ message }}</span>
+            <button onclick="this.parentElement.remove()" class="text-lg font-bold leading-none">&times;</button>
+        </div>
+        {% endfor %}
     </div>
-</nav>
+    {% endif %}
 
     <main class="flex-grow">
         {% block content %}
         {% endblock %}
     </main>
 
-    <footer class="bg-gray-900 text-white pt-16 pb-8">
+    <footer class="bg-gray-900 text-white pt-16 pb-8 mt-20">
         <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 border-b border-gray-800 pb-12">
             <div class="text-center md:text-left">
-                <h3 class="...">{{ store.store_name }}</h3>
+                <div class="flex items-center justify-center md:justify-start space-x-3 mb-4">
+                    {% if store.logo %}
+                        <img src="{{ store.logo.url }}" class="h-6 w-auto grayscale brightness-200">
+                    {% endif %}
+                    <h3 class="font-black italic uppercase tracking-tighter text-xl">{{ store.store_name|default:"ThriftElegance" }}</h3>
+                </div>
                 <p class="text-gray-400 text-sm leading-relaxed max-w-xs mx-auto md:mx-0">Premium AI-curated fashion for a more sustainable planet and a better fit.</p>
             </div>
+            
             <div class="text-center md:text-left">
-                <h4 class="font-black mb-6 text-xs uppercase tracking-[0.2em] text-purple-500">Navigation</h4>
+                <h4 class="font-black mb-6 text-xs uppercase tracking-[0.2em] text-brand-500">Navigation</h4>
                 <ul class="text-gray-300 text-sm space-y-4 font-bold">
                     <li><a href="{% url 'dashboard' %}" class="hover:text-white transition">Shop All</a></li>
-                    <li><a href="#" class="hover:text-white transition">New Arrivals</a></li>
-                    <li><a href="#" class="hover:text-white transition">Size Guide</a></li>
+                    <li><a href="{% url 'order_history' %}" class="hover:text-white transition">My Orders</a></li>
+                    <li><a href="{% url 'profile_settings' %}" class="hover:text-white transition">Account Settings</a></li>
                 </ul>
             </div>
+
             <div class="text-center md:text-left">
-                <h4 class="font-black mb-6 text-xs uppercase tracking-[0.2em] text-purple-500">Connect</h4>
+                <h4 class="font-black mb-6 text-xs uppercase tracking-[0.2em] text-brand-500">Connect</h4>
                 <div class="flex justify-center md:justify-start space-x-8 text-2xl">
-                    <a href="#" class="hover:text-purple-500 transition">📸</a> 
-                    <a href="#" class="hover:text-purple-500 transition">🐦</a> 
-                    <a href="#" class="hover:text-purple-500 transition">📧</a>
+                    <a href="#" class="hover:text-brand-500 transition opacity-80 hover:opacity-100">📸</a> 
+                    <a href="#" class="hover:text-brand-500 transition opacity-80 hover:opacity-100">🐦</a> 
+                    <a href="#" class="hover:text-brand-500 transition opacity-80 hover:opacity-100">📧</a>
                 </div>
             </div>
         </div>
         <p class="text-center text-gray-600 text-[10px] mt-8 font-black uppercase tracking-[0.3em]">
-            © 2026 ThriftElegance Global Studio
+            © 2026 {{ store.store_name|default:"ThriftElegance" }} Global Studio
         </p>
     </footer>
 
-   <script>
-    function toggleMenu() {
-        const menu = document.getElementById('mobile-menu');
-        const icon = document.getElementById('menu-icon');
-        
-        // Toggle the 'open' class we defined in the <style> section earlier
-        menu.classList.toggle('open');
-        
-        // Change icon from hamburger to X
-        if (menu.classList.contains('open')) {
-            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
-        } else {
-            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />';
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            menu.classList.toggle('open');
+            
+            if (menu.classList.contains('open')) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />';
+            }
         }
-    }
 
-    // Optional: Close menu when clicking outside
-    window.onclick = function(event) {
-        const menu = document.getElementById('mobile-menu');
-        const btn = document.querySelector('button[onclick="toggleMenu()"]');
-        if (!menu.contains(event.target) && !btn.contains(event.target) && menu.classList.contains('open')) {
-            toggleMenu();
+        window.onclick = function(event) {
+            const menu = document.getElementById('mobile-menu');
+            const btn = document.querySelector('button[onclick="toggleMenu()"]');
+            if (menu && btn && !menu.contains(event.target) && !btn.contains(event.target) && menu.classList.contains('open')) {
+                toggleMenu();
+            }
         }
-    }
-</script>
+    </script>
 </body>
 </html>

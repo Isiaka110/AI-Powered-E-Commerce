@@ -15,6 +15,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='landing'), name='logout'), 
     # Custom signup view that captures user size preferences
     path('signup/', views.personalized_signup, name='signup'),
+    path('settings/', views.profile_settings, name='profile_settings'),
 
     # --- CUSTOMER INTERFACE ---
     # Main user area showing personalized recommendations

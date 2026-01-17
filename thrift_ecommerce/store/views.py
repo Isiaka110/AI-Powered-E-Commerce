@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
-
+from django.contrib import messages  # <--- Add this line
 from .forms import SignUpForm, ProductForm, StoreSettingsForm
 from .models import Product, Order, OrderItem, Cart, CartItem, StoreSettings
 
@@ -133,24 +133,43 @@ def cart_view(request):
     }
     return render(request, 'store/cart.html', context)
 
+
+
 @login_required
 def update_cart_quantity(request, item_id, action):
-    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    # Try to get the item, but don't crash if it's not found
+    cart_item = CartItem.objects.filter(id=item_id, cart__user=request.user).first()
     
+    # If the item doesn't exist (already deleted), just go back to cart
+    if not cart_item:
+        return redirect('cart')
+
+    product = cart_item.product
+    
+    # 1. Handle explicit removal
     if request.GET.get('remove') == 'true':
         cart_item.delete()
+        messages.success(request, f"Removed {product.name} from your bag.")
+    
+    # 2. Handle Increment
     elif action == 'increment':
-        cart_item.quantity += 1
-        cart_item.save()
+        if cart_item.quantity < product.quantity:
+            cart_item.quantity += 1
+            cart_item.save()
+        else:
+            messages.warning(request, f"Only {product.quantity} units available.")
+            
+    # 3. Handle Decrement
     elif action == 'decrement':
         if cart_item.quantity > 1:
             cart_item.quantity -= 1
             cart_item.save()
         else:
+            # If it was the last 1, delete it
             cart_item.delete()
+            messages.success(request, f"Removed {product.name} from your bag.")
             
     return redirect('cart')
-
 @login_required
 def complete_purchase(request):
     cart = get_object_or_404(Cart, user=request.user)
@@ -198,6 +217,7 @@ def complete_purchase(request):
     return render(request, 'store/success.html', {'order': order})
 
 
+
 # --- ORDER HISTORY & INVOICE ---
 
 @login_required
@@ -221,6 +241,31 @@ from .forms import ProductForm, StoreSettingsForm
 def is_owner(user):
     return user.is_authenticated and user.is_staff
 
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+
+@login_required
+def profile_settings(request):
+    if request.method == 'POST':
+        user = request.user
+        # Get data from the mobile-responsive form we built
+        user.username = request.POST.get('username')
+        user.preferred_size = request.POST.get('preferred_size')
+        
+        # Handle password update if provided
+        new_password = request.POST.get('password')
+        if new_password:
+            user.set_password(new_password)
+            # This keeps the user logged in after a password change
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, user)
+            
+        user.save()
+        messages.success(request, "Settings updated successfully!")
+        return redirect('profile_settings')
+
+    return render(request, 'store/profile.html')
 # --- OWNER STUDIO VIEWS ---
 
 @user_passes_test(is_owner)
