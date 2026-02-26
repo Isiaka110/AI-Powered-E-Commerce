@@ -1,6 +1,7 @@
 import uuid
 from decimal import Decimal
 from django.db import transaction
+from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
@@ -11,6 +12,7 @@ from django.core.mail import EmailMessage
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
+from datetime import timedelta
 from django.views.decorators.http import require_POST
 from .forms import SignUpForm, ProductForm, StoreSettingsForm, VendorOnboardingStepOneForm
 from .models import Product, Order, OrderItem, Cart, CartItem, StoreSettings, PromoCode, VendorProfile
@@ -323,27 +325,63 @@ def profile_settings(request):
 @user_passes_test(is_owner)
 def owner_dashboard(request):
     products = Product.objects.all().order_by('-created_at')
-    # Filter completed orders and take the latest 5
-    orders = Order.objects.filter(is_completed=True).order_by('-created_at')[:5]
-    total_sales = sum(o.total_paid for o in Order.objects.filter(is_completed=True))
+    recent_orders = Order.objects.select_related('user').prefetch_related('items').order_by('-created_at')[:10]
+    paid_orders = Order.objects.filter(is_completed=True)
     settings = StoreSettings.load()
 
-    # Handle Store Branding Update (Sidebar Form)
     if request.method == 'POST' and 'update_settings' in request.POST:
         settings_form = StoreSettingsForm(request.POST, request.FILES, instance=settings)
         if settings_form.is_valid():
             settings_form.save()
+            messages.success(request, 'Brand settings updated.')
             return redirect('owner_dashboard')
     else:
         settings_form = StoreSettingsForm(instance=settings)
 
+    total_sales = paid_orders.aggregate(total=Sum('total_paid'))['total'] or Decimal('0.00')
+    paid_orders_count = paid_orders.count()
+    pending_orders_count = Order.objects.filter(is_completed=False).count()
+    active_products_count = products.filter(is_available=True).count()
+    low_stock_count = products.filter(quantity__lte=2).count()
+
+    sales_window_start = timezone.now() - timedelta(days=30)
+    sales_window = paid_orders.filter(created_at__gte=sales_window_start)
+    sales_window_total = sales_window.aggregate(total=Sum('total_paid'))['total'] or Decimal('0.00')
+    sales_window_orders = sales_window.count()
+
+    monthly_sales = []
+    for month_offset in range(5, -1, -1):
+        target = timezone.now().replace(day=1) - timedelta(days=month_offset * 30)
+        month_start = target.replace(day=1)
+        next_month = (month_start + timedelta(days=32)).replace(day=1)
+        month_total = paid_orders.filter(created_at__gte=month_start, created_at__lt=next_month).aggregate(total=Sum('total_paid'))['total'] or Decimal('0.00')
+        monthly_sales.append({'month': month_start.strftime('%b %Y'), 'total': month_total})
+
     return render(request, 'store/owner_dashboard.html', {
         'products': products,
-        'recent_orders': orders,
+        'recent_orders': recent_orders,
         'total_sales': total_sales,
         'settings_form': settings_form,
-        'settings': settings
+        'settings': settings,
+        'paid_orders_count': paid_orders_count,
+        'pending_orders_count': pending_orders_count,
+        'active_products_count': active_products_count,
+        'low_stock_count': low_stock_count,
+        'sales_window_total': sales_window_total,
+        'sales_window_orders': sales_window_orders,
+        'monthly_sales': monthly_sales,
     })
+
+@user_passes_test(is_owner)
+@require_POST
+def owner_toggle_order_status(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order.is_completed = not order.is_completed
+    if order.is_completed:
+        order.payment_date = timezone.now()
+    order.save(update_fields=['is_completed', 'payment_date'])
+    messages.success(request, f"Order #{order.order_id} status updated.")
+    return redirect('owner_dashboard')
 
 @user_passes_test(is_owner)
 @require_POST
