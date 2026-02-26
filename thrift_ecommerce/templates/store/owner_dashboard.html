@@ -5,6 +5,7 @@
         <div>
             <p class="text-xs uppercase tracking-[0.2em] text-gray-500 font-semibold">Owner Studio</p>
             <h1 class="text-3xl md:text-4xl font-black text-black">Inventory, Sales & Fulfillment</h1>
+            <p class="text-sm text-gray-600 mt-2 max-w-2xl">Run a premium circular-fashion brand without code: control your storefront identity, track one-of-one stock, and keep customers confident with real-time fulfillment visibility.</p>
         </div>
         <a href="{% url 'add_product' %}" class="inline-flex items-center justify-center rounded-full bg-black text-white px-6 py-3 text-sm font-bold hover:bg-gray-800 transition">+ Add Product</a>
     </div>
@@ -86,6 +87,7 @@
         <div class="space-y-6">
             <section class="bg-white border border-gray-200 rounded-[2rem] p-6">
                 <h2 class="text-base font-black mb-4">Branding</h2>
+                <p class="text-xs text-gray-500 mb-4">Changes to logo and store name are reflected across navigation, product pages, and customer emails.</p>
                 <form method="POST" enctype="multipart/form-data" class="space-y-4">
                     {% csrf_token %}
                     <input type="hidden" name="update_settings" value="true">

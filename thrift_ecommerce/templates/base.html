@@ -118,7 +118,10 @@
 
     <footer class="bg-white border-t border-brand-100 text-gray-700 py-8 mt-16">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-            <h3 class="text-2xl font-extrabold text-brand-700">{{ store.store_name|default:"Thrift & Found" }}</h3>
+            <div>
+                <h3 class="text-2xl font-extrabold text-brand-700">{{ store.store_name|default:"Thrift & Found" }}</h3>
+                <p class="text-xs uppercase tracking-[0.2em] text-gray-500 mt-1">Premium thrift. Personalized fit. Circular fashion.</p>
+            </div>
             <div class="flex flex-wrap items-center justify-center gap-6 text-sm font-semibold">
                 <a href="{% url 'terms' %}" class="hover:text-brand-600">Help & Support</a>
                 <a href="{% url 'landing' %}" class="hover:text-brand-600">How It Works</a>

@@ -92,19 +92,23 @@
                         <span class="text-red-500 text-[11px] font-black uppercase italic">Sold Out</span>
                     {% endif %}
                 </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-black uppercase tracking-widest text-gray-400">1-of-1 Protection</span>
+                    <span class="text-[11px] font-black uppercase italic text-purple-600">Real-time stock lock</span>
+                </div>
             </div>
 
             <div class="space-y-4">
                 <h3 class="text-[11px] font-black uppercase tracking-widest text-gray-900">The Story</h3>
                 <p class="text-gray-500 leading-relaxed text-sm font-medium">
-                    {{ product.description|default:"This is a hand-picked, premium thrift piece curated specifically for your style profile. Sustainable, unique, and ready for a new home." }}
+                    {{ product.description|default:"This one-of-one thrift piece was curated for your preferred size and style profile. Sustainable, unique, and protected by strict live-inventory controls." }}
                 </p>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4 pt-6">
                 {% if product.quantity > 0 %}
                 <a href="{% url 'add_to_cart' product.id %}" class="flex-1 bg-gray-900 text-white py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] text-center shadow-2xl shadow-gray-200 hover:bg-purple-600 transition-all transform hover:-translate-y-1">
-                    Add to Bag
+                    Secure This Piece
                 </a>
                 {% else %}
                 <button disabled class="flex-1 bg-gray-100 text-gray-400 py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] cursor-not-allowed">
