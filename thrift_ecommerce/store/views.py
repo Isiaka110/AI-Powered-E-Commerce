@@ -1,6 +1,7 @@
 import uuid
 from decimal import Decimal
 from django.db import transaction
+from django.db.utils import OperationalError, ProgrammingError
 from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
@@ -375,8 +376,6 @@ def profile_settings(request):
 @user_passes_test(is_owner)
 def owner_dashboard(request):
     products = Product.objects.all().order_by('-created_at')
-    recent_orders = Order.objects.select_related('user').prefetch_related('items').order_by('-created_at')[:10]
-    paid_orders = Order.objects.filter(is_completed=True)
     settings = StoreSettings.load()
 
     if request.method == 'POST' and 'update_settings' in request.POST:
@@ -388,24 +387,41 @@ def owner_dashboard(request):
     else:
         settings_form = StoreSettingsForm(instance=settings)
 
-    total_sales = paid_orders.aggregate(total=Sum('total_paid'))['total'] or Decimal('0.00')
-    paid_orders_count = paid_orders.count()
-    pending_orders_count = Order.objects.filter(is_completed=False).count()
     active_products_count = products.filter(is_available=True).count()
     low_stock_count = products.filter(quantity__lte=2).count()
 
-    sales_window_start = timezone.now() - timedelta(days=30)
-    sales_window = paid_orders.filter(created_at__gte=sales_window_start)
-    sales_window_total = sales_window.aggregate(total=Sum('total_paid'))['total'] or Decimal('0.00')
-    sales_window_orders = sales_window.count()
+    try:
+        recent_orders = Order.objects.select_related('user').prefetch_related('items').order_by('-created_at')[:10]
+        paid_orders = Order.objects.filter(is_completed=True)
+        total_sales = paid_orders.aggregate(total=Sum('total_paid'))['total'] or Decimal('0.00')
+        paid_orders_count = paid_orders.count()
+        pending_orders_count = Order.objects.filter(is_completed=False).count()
 
-    monthly_sales = []
-    for month_offset in range(5, -1, -1):
-        target = timezone.now().replace(day=1) - timedelta(days=month_offset * 30)
-        month_start = target.replace(day=1)
-        next_month = (month_start + timedelta(days=32)).replace(day=1)
-        month_total = paid_orders.filter(created_at__gte=month_start, created_at__lt=next_month).aggregate(total=Sum('total_paid'))['total'] or Decimal('0.00')
-        monthly_sales.append({'month': month_start.strftime('%b %Y'), 'total': month_total})
+        sales_window_start = timezone.now() - timedelta(days=30)
+        sales_window = paid_orders.filter(created_at__gte=sales_window_start)
+        sales_window_total = sales_window.aggregate(total=Sum('total_paid'))['total'] or Decimal('0.00')
+        sales_window_orders = sales_window.count()
+
+        monthly_sales = []
+        for month_offset in range(5, -1, -1):
+            target = timezone.now().replace(day=1) - timedelta(days=month_offset * 30)
+            month_start = target.replace(day=1)
+            next_month = (month_start + timedelta(days=32)).replace(day=1)
+            month_total = paid_orders.filter(created_at__gte=month_start, created_at__lt=next_month).aggregate(total=Sum('total_paid'))['total'] or Decimal('0.00')
+            monthly_sales.append({'month': month_start.strftime('%b %Y'), 'total': month_total})
+    except (OperationalError, ProgrammingError):
+        messages.warning(
+            request,
+            'Order analytics are temporarily unavailable because your database schema is out of date. '
+            'Run "python manage.py migrate" and refresh this page.'
+        )
+        recent_orders = Order.objects.none()
+        total_sales = Decimal('0.00')
+        paid_orders_count = 0
+        pending_orders_count = 0
+        sales_window_total = Decimal('0.00')
+        sales_window_orders = 0
+        monthly_sales = []
 
     return render(request, 'store/owner_dashboard.html', {
         'products': products,
