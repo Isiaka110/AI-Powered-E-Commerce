@@ -94,6 +94,9 @@
                 <a href="{% url 'order_history' %}" class="flex items-center justify-between">My Orders <span class="text-brand-500 text-sm">→</span></a>
                 <a href="{% url 'wishlist_view' %}" class="flex items-center justify-between">Wishlist <span class="text-brand-500 text-sm">→</span></a>
                 <a href="{% url 'profile_settings' %}" class="flex items-center justify-between">Account Settings <span class="text-brand-500 text-sm">→</span></a>
+                {% if user.is_staff %}
+                    <a href="{% url 'owner_dashboard' %}" class="flex items-center justify-between">Owner Studio <span class="text-brand-500 text-sm">→</span></a>
+                {% endif %}
                 <div class="pt-4 border-t border-gray-100">
                     <form action="{% url 'logout' %}" method="POST">{% csrf_token %}<button type="submit" class="text-red-400 text-sm font-semibold">Sign Out</button></form>
                 </div>

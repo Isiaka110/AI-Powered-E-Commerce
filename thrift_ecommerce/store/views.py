@@ -178,18 +178,36 @@ def shop_view(request):
 @login_required
 def cart_view(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
+    store_settings = StoreSettings.load()
     cart_items = cart.items.all()
     total = cart.total_price
-    
+
     discount = Decimal('0.00')
     coupon_error = None
+
+    if request.method == 'POST' and request.POST.get('form_type') == 'fulfillment':
+        selected_method = request.POST.get('fulfillment_method', 'PICKUP')
+        logistics_note = (request.POST.get('logistics_note') or '').strip()
+
+        if selected_method == 'PICKUP' and not store_settings.allow_pickup:
+            messages.warning(request, 'Pickup is currently disabled by the store owner.')
+        elif selected_method == 'WAYBILL' and not store_settings.allow_waybill_delivery:
+            messages.warning(request, 'Waybill delivery is currently disabled by the store owner.')
+        else:
+            cart.fulfillment_method = selected_method
+            cart.logistics_note = logistics_note
+            cart.save(update_fields=['fulfillment_method', 'logistics_note'])
+            messages.success(request, 'Logistics preference updated for checkout.')
+
+        return redirect('cart')
+
     if request.method == 'POST':
         code = (request.POST.get('coupon_code') or '').strip()
         promo = PromoCode.objects.filter(code__iexact=code, is_active=True).first()
         if promo:
             discount_rate = Decimal(promo.discount_percentage) / Decimal('100')
             discount = (total * discount_rate).quantize(Decimal('0.01'))
-        else:
+        elif code:
             coupon_error = "Invalid Coupon Code"
 
     context = {
@@ -197,7 +215,9 @@ def cart_view(request):
         'total': total,
         'discount': discount,
         'grand_total': total - discount,
-        'coupon_error': coupon_error
+        'coupon_error': coupon_error,
+        'cart': cart,
+        'store_settings': store_settings,
     }
     return render(request, 'store/cart.html', context)
 
@@ -259,12 +279,24 @@ def complete_purchase(request):
                 return redirect('cart')
             order_total += product.price * item.quantity
 
+        store_settings = StoreSettings.load()
+        if cart.fulfillment_method == 'PICKUP' and not store_settings.allow_pickup:
+            messages.error(request, 'Pickup is currently unavailable. Please choose another logistics option.')
+            return redirect('cart')
+        if cart.fulfillment_method == 'WAYBILL' and not store_settings.allow_waybill_delivery:
+            messages.error(request, 'Waybill delivery is currently unavailable. Please choose another logistics option.')
+            return redirect('cart')
+
         order = Order.objects.create(
             user=request.user,
             order_id=str(uuid.uuid4())[:12].upper(),
             total_paid=order_total,
             is_completed=True,
             payment_date=timezone.now(),
+            fulfillment_method=cart.fulfillment_method,
+            logistics_note=cart.logistics_note,
+            receipt_channel_used=store_settings.receipt_channel,
+            pre_purchase_instruction_snapshot=store_settings.pre_purchase_instruction,
         )
 
         for item in cart_items:
@@ -281,18 +313,24 @@ def complete_purchase(request):
 
         cart.items.all().delete()
 
-    # SEND EMAIL RECEIPT
-    try:
-        mail_subject = f'Order Confirmed - #{order.order_id}'
-        html_message = render_to_string('emails/order_receipt.html', {
-            'user': request.user,
-            'order': order,
-        })
-        email = EmailMessage(mail_subject, html_message, to=[request.user.email])
-        email.content_subtype = "html" # Main content is now text/html
-        email.send()
-    except Exception as e:
-        print(f"Email failed: {e}")
+    # SEND RECEIPT BASED ON OWNER CONFIG
+    settings = StoreSettings.load()
+    if settings.receipt_channel == 'EMAIL':
+        try:
+            mail_subject = f'Order Confirmed - #{order.order_id}'
+            html_message = render_to_string('emails/order_receipt.html', {
+                'user': request.user,
+                'order': order,
+            })
+            email = EmailMessage(mail_subject, html_message, to=[request.user.email])
+            email.content_subtype = "html"
+            email.send()
+        except Exception as e:
+            print(f"Email failed: {e}")
+    elif settings.receipt_channel == 'DM':
+        messages.info(request, 'Receipt delivery is configured for direct message by the store owner.')
+    elif settings.receipt_channel == 'SOCIAL_INBOX':
+        messages.info(request, 'Receipt delivery is configured for social media inbox by the store owner.')
 
     return render(request, 'store/success.html', {'order': order})
 
