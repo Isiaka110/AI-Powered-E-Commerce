@@ -17,6 +17,9 @@ urlpatterns = [
     path('signup/', views.personalized_signup, name='signup'),
     path('onboarding/', views.vendor_onboarding, name='vendor_onboarding'),
     path('terms/', views.terms_and_conditions, name='terms'),
+    path('help-support/', views.help_support, name='help_support'),
+    path('how-it-works/', views.how_it_works, name='how_it_works'),
+    path('policies/', views.policies, name='policies'),
     path('reset-password/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset_form.html'), name='password_reset'),
     path('settings/', views.profile_settings, name='profile_settings'),
 
