@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, Product, StoreSettings
+from .models import User, Product, StoreSettings, VendorProfile
 
 class SignUpForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
@@ -91,5 +91,21 @@ class StoreSettingsForm(forms.ModelForm):
             }),
             'logo': forms.ClearableFileInput(attrs={
                 'class': 'text-[10px] text-gray-500'
+            }),
+        }
+
+
+class VendorOnboardingStepOneForm(forms.ModelForm):
+    class Meta:
+        model = VendorProfile
+        fields = ["business_name", "contact_phone"]
+        widgets = {
+            'business_name': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-sm font-semibold focus:border-gray-900 focus:ring-gray-900',
+                'placeholder': 'Thrift Elegance'
+            }),
+            'contact_phone': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-sm font-semibold focus:border-gray-900 focus:ring-gray-900',
+                'placeholder': '+234...'
             }),
         }

@@ -1,93 +1,56 @@
 {% extends 'base.html' %}
 {% block content %}
-
-<div class="relative overflow-hidden bg-brand-900 text-white">
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-        <div class="absolute -top-24 -right-24 w-96 h-96 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+<section class="bg-black text-white">
+  <div class="max-w-7xl mx-auto px-6 py-20 md:py-28 text-center">
+    <span class="inline-flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em] border border-white/20 rounded-full animate-pulse">Premium Invisible Commerce</span>
+    <h1 class="mt-8 text-4xl md:text-6xl font-black leading-tight">Turn Your Passion Into A <span class="text-gray-300">Premium Online Store</span></h1>
+    <p class="mt-6 text-gray-300 max-w-3xl mx-auto">AKI connects social vendors to a complete command center and a frictionless shopper storefront so your products stay the hero.</p>
+    <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+      {% if user.is_authenticated %}
+      <a href="{% url 'vendor_onboarding' %}" class="px-8 py-4 rounded-xl bg-white text-black font-black uppercase text-xs tracking-[0.2em]">Enter Vendor Onboarding</a>
+      {% else %}
+      <a href="{% url 'signup' %}" class="px-8 py-4 rounded-xl bg-white text-black font-black uppercase text-xs tracking-[0.2em]">Start As Vendor</a>
+      {% endif %}
+      <a href="{% url 'dashboard' %}" class="px-8 py-4 rounded-xl border border-white/40 font-black uppercase text-xs tracking-[0.2em]">Continue As Shopper</a>
     </div>
-
-    <div class="relative z-10 max-w-7xl mx-auto px-6 py-24 md:py-32 flex flex-col items-center text-center">
-        <span class="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-brand-100 text-[10px] font-bold uppercase tracking-[0.2em] mb-6">
-            ✨ Sustainable Fashion Meets AI
-        </span>
-        
-        <h1 class="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
-            Thrift smarter, <br>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-pink-200">fit better.</span>
-        </h1>
-        
-        <p class="text-lg md:text-xl text-brand-100 max-w-2xl mb-10 leading-relaxed">
-            We use AI to scan thousands of pre-loved items and match them to your unique measurements and style profile.
-        </p>
-
-        <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-            {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="bg-white text-brand-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-xl shadow-brand-900/50">
-                    Go to Your Dashboard
-                </a>
-            {% else %}
-                <a href="{% url 'signup' %}" class="bg-white text-brand-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-xl shadow-brand-900/50">
-                    Get Started
-                </a>
-                <a href="{% url 'login' %}" class="px-8 py-4 rounded-xl font-bold text-lg text-white border border-white/30 hover:bg-white/10 transition">
-                    Sign In
-                </a>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<section class="py-20 bg-white">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="grid md:grid-cols-3 gap-12 text-center md:text-left">
-            <div class="space-y-4">
-                <div class="w-12 h-12 bg-brand-50 rounded-2xl flex items-center justify-center text-2xl mx-auto md:mx-0">📏</div>
-                <h3 class="text-xl font-black text-gray-900">True-to-Size AI</h3>
-                <p class="text-gray-500 leading-relaxed">Vintage sizes vary. Our AI analyzes garment measurements to ensure a perfect fit, regardless of the tag.</p>
-            </div>
-            <div class="space-y-4">
-                <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-2xl mx-auto md:mx-0">🌿</div>
-                <h3 class="text-xl font-black text-gray-900">100% Sustainable</h3>
-                <p class="text-gray-500 leading-relaxed">Every item is rescued, cleaned, and curated. Look good while reducing your carbon footprint.</p>
-            </div>
-            <div class="space-y-4">
-                <div class="w-12 h-12 bg-yellow-50 rounded-2xl flex items-center justify-center text-2xl mx-auto md:mx-0">💎</div>
-                <h3 class="text-xl font-black text-gray-900">Curated Gems</h3>
-                <p class="text-gray-500 leading-relaxed">No more digging through bins. We bring the best vintage finds directly to your personalized feed.</p>
-            </div>
-        </div>
-    </div>
+  </div>
 </section>
 
-<section class="py-20 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="flex justify-between items-end mb-12">
-            <div>
-                <h2 class="text-3xl font-black text-gray-900">Fresh Drops</h2>
-                <p class="text-gray-500 mt-2">Just added to the collection.</p>
-            </div>
-            <a href="{% url 'dashboard' %}" class="hidden md:block text-brand-600 font-bold hover:text-brand-900">View All →</a>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {% for product in recent_products %}
-            <a href="{% url 'login' %}" class="group bg-white rounded-2xl p-3 shadow-sm hover:shadow-xl transition-all duration-300">
-                <div class="aspect-[4/5] rounded-xl overflow-hidden mb-3 bg-gray-100">
-                    <img src="{{ product.image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
-                </div>
-                <h4 class="font-bold text-gray-900 truncate">{{ product.name }}</h4>
-                <p class="text-brand-600 font-black">₦{{ product.price }}</p>
-            </a>
-            {% empty %}
-            <div class="col-span-4 text-center text-gray-400 py-10">Restocking soon!</div>
-            {% endfor %}
-        </div>
-        
-        <div class="mt-8 text-center md:hidden">
-            <a href="{% url 'dashboard' %}" class="inline-block bg-white border border-gray-200 px-6 py-3 rounded-xl font-bold text-sm">View All Items</a>
-        </div>
-    </div>
+<section class="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-3 gap-6">
+  <article class="border border-gray-200 rounded-2xl p-6 bg-white">
+    <h3 class="font-black text-lg">Inventory Control</h3>
+    <p class="text-sm text-gray-600 mt-2">Manage quantities, sale prices, and delivery rules from one private dashboard.</p>
+  </article>
+  <article class="border border-gray-200 rounded-2xl p-6 bg-white">
+    <h3 class="font-black text-lg">Verified Reviews</h3>
+    <p class="text-sm text-gray-600 mt-2">Moderate shopper feedback before publishing to protect trust and brand quality.</p>
+  </article>
+  <article class="border border-gray-200 rounded-2xl p-6 bg-white">
+    <h3 class="font-black text-lg">Bulk Order Actions</h3>
+    <p class="text-sm text-gray-600 mt-2">Process batches of orders quickly with fulfillment-first workflows.</p>
+  </article>
 </section>
 
+<section class="bg-white border-y border-gray-200">
+  <div class="max-w-7xl mx-auto px-6 py-16">
+    <h2 class="text-2xl font-black text-center">Loved by social-first vendors</h2>
+    <div class="mt-10 grid md:grid-cols-3 gap-6">
+      <blockquote class="p-6 border border-gray-200 rounded-2xl">“AKI helped me move from DMs to real operations in one week.” <footer class="mt-4 text-xs uppercase font-black text-gray-500">— Nene, Thrift Seller</footer></blockquote>
+      <blockquote class="p-6 border border-gray-200 rounded-2xl">“My storefront now feels premium and my repeat customers doubled.” <footer class="mt-4 text-xs uppercase font-black text-gray-500">— Ify, Fashion Curator</footer></blockquote>
+      <blockquote class="p-6 border border-gray-200 rounded-2xl">“Order management and reviews in one place saved me hours daily.” <footer class="mt-4 text-xs uppercase font-black text-gray-500">— Ayo, Accessories Vendor</footer></blockquote>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-4xl mx-auto px-6 py-16">
+  <div class="rounded-3xl bg-black text-white p-10 text-center">
+    <h2 class="text-3xl font-black">Get platform updates</h2>
+    <p class="mt-3 text-gray-300">Join the AKI newsletter for new tooling and commerce playbooks.</p>
+    <form class="mt-6 flex flex-col sm:flex-row gap-3">
+      <input type="email" placeholder="Enter your email" class="flex-1 px-4 py-3 rounded-xl text-black font-semibold" required>
+      <button class="px-6 py-3 rounded-xl bg-white text-black font-black uppercase text-xs tracking-widest">Subscribe</button>
+    </form>
+    <p class="mt-4 text-xs text-gray-400">By signing up you agree to our <a href="{% url 'terms' %}" class="underline">Terms & Conditions</a>.</p>
+  </div>
+</section>
 {% endblock %}

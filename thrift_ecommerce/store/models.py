@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.utils.text import slugify
 
 # --- EDITABLE CONFIGURATION ---
 # To add/remove sizes, simply update these lists.
@@ -55,6 +56,28 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class VendorProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='vendor_profile')
+    business_name = models.CharField(max_length=120)
+    contact_phone = models.CharField(max_length=30)
+    storefront_slug = models.SlugField(unique=True, max_length=140, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.business_name} ({self.user.email})"
+
+    def save(self, *args, **kwargs):
+        if not self.storefront_slug:
+            base_slug = slugify(self.business_name) or slugify(self.user.username) or f"vendor-{self.user_id}"
+            slug = base_slug
+            counter = 1
+            while VendorProfile.objects.filter(storefront_slug=slug).exclude(pk=self.pk).exists():
+                counter += 1
+                slug = f"{base_slug}-{counter}"
+            self.storefront_slug = slug
+        super().save(*args, **kwargs)
 
 # --- 3. PRODUCT MODEL ---
 class Product(models.Model):
