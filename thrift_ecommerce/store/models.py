@@ -38,6 +38,20 @@ class StoreSettings(models.Model):
         ('NONE', 'Do not send a receipt automatically'),
     )
     receipt_channel = models.CharField(max_length=20, choices=RECEIPT_CHANNEL_CHOICES, default='EMAIL')
+    owner_whatsapp_number = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Use international format, e.g. 2348012345678 (no + or spaces).",
+    )
+    whatsapp_message_template = models.TextField(
+        blank=True,
+        default="Hi {{store_name}}, I just completed order #{{order_id}} for ₦{{total_paid}}.",
+        help_text="Template supports: {{store_name}}, {{order_id}}, {{total_paid}}, {{fulfillment_method}}, {{logistics_note}}, {{item_summary}}",
+    )
+    auto_open_whatsapp_on_checkout = models.BooleanField(
+        default=True,
+        help_text="Automatically open WhatsApp with order details after successful checkout.",
+    )
     
     class Meta:
         verbose_name_plural = "Store Settings"

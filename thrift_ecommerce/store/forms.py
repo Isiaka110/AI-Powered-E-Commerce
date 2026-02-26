@@ -90,6 +90,9 @@ class StoreSettingsForm(forms.ModelForm):
             'allow_waybill_delivery',
             'receipt_channel',
             'pre_purchase_instruction',
+            'owner_whatsapp_number',
+            'whatsapp_message_template',
+            'auto_open_whatsapp_on_checkout',
         ]
         widgets = {
             'store_name': forms.TextInput(attrs={
@@ -112,6 +115,18 @@ class StoreSettingsForm(forms.ModelForm):
                 'class': 'w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-purple-500 outline-none transition',
                 'rows': 3,
                 'placeholder': 'Instruction shown before customers complete payment.'
+            }),
+            'owner_whatsapp_number': forms.TextInput(attrs={
+                'class': 'w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-purple-500 outline-none transition',
+                'placeholder': '2348012345678'
+            }),
+            'whatsapp_message_template': forms.Textarea(attrs={
+                'class': 'w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-purple-500 outline-none transition',
+                'rows': 4,
+                'placeholder': 'Hi {{store_name}}, I just completed order #{{order_id}} for ₦{{total_paid}}.'
+            }),
+            'auto_open_whatsapp_on_checkout': forms.CheckboxInput(attrs={
+                'class': 'h-4 w-4 rounded border-gray-300 text-black focus:ring-black'
             }),
         }
 

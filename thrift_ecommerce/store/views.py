@@ -14,6 +14,7 @@ from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
 from datetime import timedelta
+from urllib.parse import quote
 from django.views.decorators.http import require_POST
 from .forms import SignUpForm, ProductForm, StoreSettingsForm, VendorOnboardingStepOneForm
 from .models import Product, Order, OrderItem, Cart, CartItem, StoreSettings, PromoCode, VendorProfile
@@ -21,6 +22,34 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .tokens import account_activation_token
+
+
+
+def build_whatsapp_checkout_link(settings, order):
+    number = ''.join(ch for ch in (settings.owner_whatsapp_number or '') if ch.isdigit())
+    if not number:
+        return ''
+
+    item_summary = '; '.join(
+        f"{item.quantity}x {item.product.name if item.product else 'Item'}"
+        for item in order.items.all()
+    )
+    context = {
+        'store_name': settings.store_name,
+        'order_id': order.order_id,
+        'total_paid': order.total_paid,
+        'fulfillment_method': order.get_fulfillment_method_display(),
+        'logistics_note': order.logistics_note or 'None',
+        'item_summary': item_summary or 'No items',
+    }
+    template = settings.whatsapp_message_template or (
+        'Hi {{store_name}}, I just completed order #{{order_id}} for ₦{{total_paid}}.'
+    )
+    message = template
+    for key, value in context.items():
+        message = message.replace(f'{{{{{key}}}}}', str(value))
+
+    return f"https://wa.me/{number}?text={quote(message)}"
 
 # --- HELPER: CHECK IF OWNER ---
 def is_owner(user):
@@ -333,7 +362,13 @@ def complete_purchase(request):
     elif settings.receipt_channel == 'SOCIAL_INBOX':
         messages.info(request, 'Receipt delivery is configured for social media inbox by the store owner.')
 
-    return render(request, 'store/success.html', {'order': order})
+    whatsapp_url = build_whatsapp_checkout_link(settings, order)
+
+    return render(request, 'store/success.html', {
+        'order': order,
+        'whatsapp_url': whatsapp_url,
+        'auto_open_whatsapp': bool(whatsapp_url and settings.auto_open_whatsapp_on_checkout),
+    })
 
 
 

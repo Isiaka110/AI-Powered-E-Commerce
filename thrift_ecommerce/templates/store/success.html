@@ -49,6 +49,11 @@
         </div>
 
         <div class="flex flex-col md:flex-row gap-4 justify-center">
+            {% if whatsapp_url %}
+            <a id="whatsapp-handoff" href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="bg-green-600 text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-green-700 transition-all transform hover:-translate-y-1">
+                Send Order to Owner on WhatsApp
+            </a>
+            {% endif %}
             <a href="{% url 'dashboard' %}" class="bg-gray-900 text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-purple-600 transition-all transform hover:-translate-y-1">
                 Continue Shopping
             </a>
@@ -58,8 +63,20 @@
         </div>
 
         <p class="text-[10px] text-gray-400 mt-10 uppercase tracking-[0.2em] font-bold">A digital copy of this receipt has been sent to <span class="text-purple-500">{{ user.email }}</span></p>
+        {% if whatsapp_url %}<p class="text-[11px] text-green-700 mt-3 font-semibold">For faster logistics, tap the WhatsApp handoff button to continue with the business owner.</p>{% endif %}
     </div>
 </div>
+
+{% if auto_open_whatsapp %}
+<script>
+    window.addEventListener('load', function () {
+        const handoffLink = document.getElementById('whatsapp-handoff');
+        if (handoffLink) {
+            handoffLink.click();
+        }
+    });
+</script>
+{% endif %}
 
 <style>
     @media print {
