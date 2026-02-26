@@ -392,6 +392,9 @@ def owner_dashboard(request):
 
     try:
         recent_orders = Order.objects.select_related('user').prefetch_related('items').order_by('-created_at')[:10]
+        # Force query evaluation here so schema issues are caught by this guard
+        # instead of bubbling up during template rendering.
+        list(recent_orders)
         paid_orders = Order.objects.filter(is_completed=True)
         total_sales = paid_orders.aggregate(total=Sum('total_paid'))['total'] or Decimal('0.00')
         paid_orders_count = paid_orders.count()
