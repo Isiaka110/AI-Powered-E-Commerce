@@ -54,6 +54,7 @@ urlpatterns = [
     path('store-admin/product/add/', views.add_product, name='store_admin_add_product'),
     path('owner/product/edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('management/', views.owner_dashboard, name='owner_dashboard'),
+    path('management/order/<int:order_id>/toggle/', views.owner_toggle_order_status, name='owner_toggle_order_status'),
     # Completely remove a product from the database
     path('management/delete/<int:product_id>/', views.delete_product, name='delete_product'),
     # Quickly flip a product between 'Available' and 'Sold'
