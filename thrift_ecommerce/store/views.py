@@ -79,7 +79,16 @@ def vendor_onboarding(request):
         return redirect('login')
 
     profile = VendorProfile.objects.filter(user=request.user).first()
-    step = request.GET.get('step', '1')
+    selected_role = request.session.get('selected_role')
+    step = request.GET.get('step', 'role' if not selected_role else '1')
+
+    if request.method == 'POST' and request.POST.get('action') == 'choose_role':
+        role = request.POST.get('role')
+        if role in ['farmer', 'buyer', 'logistics']:
+            request.session['selected_role'] = role
+            messages.success(request, 'Role selected. Continue to complete your profile.')
+            return redirect(f"{request.path}?step=1")
+        messages.warning(request, 'Please choose a valid role option.')
 
     if request.method == 'POST' and step == '1':
         form = VendorOnboardingStepOneForm(request.POST, instance=profile)
@@ -87,19 +96,24 @@ def vendor_onboarding(request):
             vendor_profile = form.save(commit=False)
             vendor_profile.user = request.user
             vendor_profile.save()
-            messages.success(request, 'Step 1 complete. Your storefront is now provisioned.')
+            messages.success(request, 'Profile complete. Your storefront is now provisioned.')
             return redirect(f"{request.path}?step=2")
     else:
         form = VendorOnboardingStepOneForm(instance=profile)
 
+    if step in ['1', '2'] and not selected_role:
+        messages.warning(request, 'Select your role to continue onboarding.')
+        return redirect(f"{request.path}?step=role")
+
     if step == '2' and not profile:
-        messages.warning(request, 'Complete step 1 to generate your storefront slug.')
+        messages.warning(request, 'Complete your profile details first.')
         return redirect(f"{request.path}?step=1")
 
     return render(request, 'store/vendor_onboarding.html', {
         'step': step,
         'form': form,
         'profile': profile,
+        'selected_role': selected_role,
     })
 
 # --- WISHLIST ---
