@@ -11,7 +11,7 @@
                 Made for your fit: <span class="underline decoration-purple-300">{{ user.preferred_size }}</span>
             </h2>
             <p class="text-purple-100 text-sm md:text-lg opacity-90 max-w-md mx-auto md:mx-0">
-                Our AI scanned hundreds of thrifted pieces to find items that match your style and exact measurements.
+                Your boutique feed is filtered by preferred size first, so each one-of-one listing feels handpicked for your body and style.
             </p>
         </div>
         
@@ -45,7 +45,7 @@
 
 <main class="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
     <div class="flex justify-between items-center mb-8">
-        <h3 class="text-xl md:text-2xl font-black text-gray-900 tracking-tight">Hand-Picked</h3>
+        <h3 class="text-xl md:text-2xl font-black text-gray-900 tracking-tight">Hand-Picked for Your Fit</h3>
         <p class="text-[10px] md:text-sm font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-widest">{{ products|length }} Items</p>
     </div>
     
@@ -94,8 +94,8 @@
         {% empty %}
         <div class="col-span-full py-20 md:py-32 text-center bg-gray-50 rounded-[2rem] md:rounded-[3rem] border-2 border-dashed border-gray-200">
             <div class="text-5xl md:text-7xl mb-6">📦</div>
-            <h3 class="text-xl md:text-2xl font-black text-gray-900 mb-2">The rack is empty!</h3>
-            <p class="text-xs md:text-sm text-gray-500 max-w-xs mx-auto mb-8">No {{ request.GET.category|default:"" }} items in size {{ user.preferred_size }} right now.</p>
+            <h3 class="text-xl md:text-2xl font-black text-gray-900 mb-2">No misses. Only your size.</h3>
+            <p class="text-xs md:text-sm text-gray-500 max-w-xs mx-auto mb-8">No {{ request.GET.category|default:"" }} pieces in {{ user.preferred_size }} are currently live. We hide non-matching clutter so your feed stays premium.</p>
             <a href="{% url 'dashboard' %}" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-purple-700 transition">Show All</a>
         </div>
         {% endfor %}
