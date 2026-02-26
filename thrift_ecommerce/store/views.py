@@ -416,9 +416,17 @@ def owner_dashboard(request):
     if request.method == 'POST' and 'update_settings' in request.POST:
         settings_form = StoreSettingsForm(request.POST, request.FILES, instance=settings)
         if settings_form.is_valid():
-            settings_form.save()
-            messages.success(request, 'Brand settings updated.')
-            return redirect('owner_dashboard')
+            try:
+                settings_form.save()
+            except (OperationalError, ProgrammingError):
+                messages.warning(
+                    request,
+                    'Store settings could not be saved because your database schema is out of date. '
+                    'Run "python manage.py migrate" and try again.'
+                )
+            else:
+                messages.success(request, 'Brand settings updated.')
+                return redirect('owner_dashboard')
     else:
         settings_form = StoreSettingsForm(instance=settings)
 
