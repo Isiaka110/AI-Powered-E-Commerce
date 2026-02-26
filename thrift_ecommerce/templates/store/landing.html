@@ -1,82 +1,83 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="relative min-h-[72vh] flex items-center justify-center text-center text-white">
-  <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1800&q=80')] bg-cover bg-center"></div>
-  <div class="absolute inset-0 bg-black/45"></div>
-  <div class="relative z-10 max-w-4xl px-6 py-24">
-    <h1 class="text-4xl md:text-6xl font-bold leading-tight">Connect, Trade & Grow.<br>Agricultural marketplace <span class="text-brand-200">AI</span></h1>
-    <p class="mt-5 text-lg text-gray-100">Africa's premium platform connecting farmers, buyers, and logistics providers with AI-powered matching, monitoring and secure payments.</p>
-    <div class="mt-10 flex flex-wrap justify-center gap-4">
+<section class="relative min-h-[72vh] flex items-center justify-center text-center text-white px-4">
+  <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1800&q=80')] bg-cover bg-center"></div>
+  <div class="absolute inset-0 bg-black/55"></div>
+  <div class="relative z-10 max-w-4xl px-2 sm:px-6 py-16 md:py-24">
+    <p class="text-xs sm:text-sm uppercase tracking-[0.25em] text-brand-100 font-semibold">Sustainable style marketplace</p>
+    <h1 class="mt-4 text-3xl sm:text-4xl md:text-6xl font-bold leading-tight">Find pre-loved pieces that fit your style, your size, and your budget.</h1>
+    <p class="mt-5 text-base md:text-lg text-gray-100">{{ store.store_name|default:'Thrift & Found' }} helps shoppers discover quality thrift fashion, while trusted sellers manage listings, orders, and payouts from one dashboard.</p>
+    <div class="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
       {% if user.is_authenticated %}
-      <a href="{% url 'vendor_onboarding' %}" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-8 py-3 rounded-full">Continue Setup</a>
+      <a href="{% url 'vendor_onboarding' %}" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 sm:px-8 py-3 rounded-full">Become a Seller</a>
       {% else %}
-      <a href="{% url 'signup' %}" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-8 py-3 rounded-full">Get Started Free</a>
+      <a href="{% url 'signup' %}" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 sm:px-8 py-3 rounded-full">Join Free</a>
       {% endif %}
-      <a href="{% url 'dashboard' %}" class="border border-white/60 hover:bg-white/10 text-white font-semibold px-8 py-3 rounded-full">Explore Marketplace</a>
+      <a href="{% url 'dashboard' %}" class="border border-white/60 hover:bg-white/10 text-white font-semibold px-6 sm:px-8 py-3 rounded-full">Shop the Collection</a>
     </div>
   </div>
 </section>
 
-<section class="max-w-6xl mx-auto px-6 py-16">
-  <h2 class="text-4xl font-semibold text-center text-gray-900">Choose Your Role</h2>
-  <div class="grid md:grid-cols-3 gap-6 mt-10">
-    <article class="bg-[#dff3e3] p-7 rounded-2xl border border-[#cdecd3]">
-      <h3 class="text-2xl font-semibold">For Farmers</h3>
-      <p class="mt-3 text-gray-700">List products, monitor inventory, and sell directly to verified buyers.</p>
+<section class="max-w-6xl mx-auto px-4 sm:px-6 py-14 md:py-16">
+  <h2 class="text-3xl md:text-4xl font-semibold text-center text-gray-900">Built for Every Part of Thrift Commerce</h2>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 mt-10">
+    <article class="bg-[#f7efe7] p-6 md:p-7 rounded-2xl border border-[#ecd8c3]">
+      <h3 class="text-xl md:text-2xl font-semibold">For Shoppers</h3>
+      <p class="mt-3 text-gray-700 text-sm md:text-base">Browse curated drops, save favorites, and checkout securely in minutes.</p>
     </article>
-    <article class="bg-white p-7 rounded-2xl border border-brand-200 shadow-sm">
-      <h3 class="text-2xl font-semibold">For Buyers</h3>
-      <p class="mt-3 text-gray-700">Source traceable farm products, compare prices, and order with confidence.</p>
+    <article class="bg-white p-6 md:p-7 rounded-2xl border border-brand-200 shadow-sm">
+      <h3 class="text-xl md:text-2xl font-semibold">For Sellers</h3>
+      <p class="mt-3 text-gray-700 text-sm md:text-base">Upload photos, manage inventory, and track each order from one place.</p>
     </article>
-    <article class="bg-[#dff3e3] p-7 rounded-2xl border border-[#cdecd3]">
-      <h3 class="text-2xl font-semibold">For Logistics</h3>
-      <p class="mt-3 text-gray-700">Coordinate pickup, storage, and delivery from a single fulfillment hub.</p>
+    <article class="bg-[#f7efe7] p-6 md:p-7 rounded-2xl border border-[#ecd8c3] sm:col-span-2 lg:col-span-1">
+      <h3 class="text-xl md:text-2xl font-semibold">For Teams</h3>
+      <p class="mt-3 text-gray-700 text-sm md:text-base">Keep storefront, stock, and fulfillment synced so customers always see real-time availability.</p>
     </article>
   </div>
 </section>
 
 <section class="bg-white border-y border-gray-200">
-  <div class="max-w-6xl mx-auto px-6 py-16">
-    <div class="flex justify-between items-center">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-14 md:py-16">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       <div>
-        <h2 class="text-3xl font-semibold">Featured Products</h2>
-        <p class="text-gray-600 mt-1">Discover verified fresh products across Africa.</p>
+        <h2 class="text-2xl md:text-3xl font-semibold">Trending This Week</h2>
+        <p class="text-gray-600 mt-1 text-sm md:text-base">Freshly listed thrift picks from verified vendors.</p>
       </div>
-      <a href="{% url 'dashboard' %}" class="bg-brand-500 text-white px-5 py-2 rounded-full text-sm font-semibold">View all</a>
+      <a href="{% url 'dashboard' %}" class="bg-brand-500 text-white px-5 py-2 rounded-full text-sm font-semibold w-fit">View all</a>
     </div>
 
-    <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-5 mt-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5 mt-8">
       {% for product in recent_products %}
       <article class="rounded-2xl overflow-hidden border border-gray-200 bg-white">
-        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="h-40 w-full object-cover">
-        <div class="p-4">
-          <h3 class="font-semibold text-lg">{{ product.name }}</h3>
-          <p class="text-sm text-gray-500 mt-2 line-clamp-2">{{ product.description|default:'High quality produce from verified vendors.' }}</p>
-          <p class="mt-3 font-semibold text-gray-800">NGN {{ product.price }} / Unit</p>
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="h-32 sm:h-40 w-full object-cover">
+        <div class="p-3 md:p-4">
+          <h3 class="font-semibold text-sm md:text-lg truncate">{{ product.name }}</h3>
+          <p class="text-xs md:text-sm text-gray-500 mt-2 line-clamp-2">{{ product.description|default:'Quality pre-loved fashion from trusted sellers.' }}</p>
+          <p class="mt-3 font-semibold text-gray-800 text-sm md:text-base">₦{{ product.price }}</p>
         </div>
       </article>
       {% empty %}
-      <p class="text-gray-600 col-span-4">Products will appear here after vendors publish listings.</p>
+      <p class="text-gray-600 col-span-2 md:col-span-4">Products will appear here after sellers publish listings.</p>
       {% endfor %}
     </div>
   </div>
 </section>
 
-<section class="max-w-6xl mx-auto px-6 py-16">
-  <h2 class="text-4xl font-semibold text-center">Platform Features</h2>
-  <div class="grid md:grid-cols-3 gap-6 mt-10">
-    <article class="bg-white rounded-2xl border border-gray-200 p-6"><h3 class="font-semibold text-xl">Smart Marketplace</h3><p class="mt-3 text-gray-600">Advanced filters and geospatial search for agricultural products.</p></article>
-    <article class="bg-white rounded-2xl border border-gray-200 p-6"><h3 class="font-semibold text-xl">AI Matching</h3><p class="mt-3 text-gray-600">Intelligent matching between farmers, buyers, and logistics providers.</p></article>
-    <article class="bg-[#dff3e3] rounded-2xl border border-[#cdecd3] p-6"><h3 class="font-semibold text-xl">Secure Payments</h3><p class="mt-3 text-gray-600">Integrated payment options with transparent order status tracking.</p></article>
+<section class="max-w-6xl mx-auto px-4 sm:px-6 py-14 md:py-16">
+  <h2 class="text-3xl md:text-4xl font-semibold text-center">Why shoppers choose us</h2>
+  <div class="grid md:grid-cols-3 gap-5 md:gap-6 mt-10">
+    <article class="bg-white rounded-2xl border border-gray-200 p-6"><h3 class="font-semibold text-xl">Mobile-First Shopping</h3><p class="mt-3 text-gray-600">Responsive pages across store, cart, orders, and seller tools.</p></article>
+    <article class="bg-white rounded-2xl border border-gray-200 p-6"><h3 class="font-semibold text-xl">Smart Discovery</h3><p class="mt-3 text-gray-600">Find pieces by size, category, and budget with streamlined filters.</p></article>
+    <article class="bg-[#f7efe7] rounded-2xl border border-[#ecd8c3] p-6"><h3 class="font-semibold text-xl">Trusted Checkout</h3><p class="mt-3 text-gray-600">Secure payments and order tracking from purchase to delivery.</p></article>
   </div>
 </section>
 
-<section class="max-w-6xl mx-auto px-6 pb-16">
-  <div class="rounded-3xl p-10 md:p-14 bg-gradient-to-r from-brand-700 to-brand-500 text-white">
-    <h2 class="text-4xl font-semibold max-w-xl">Ready to transform your e-commerce supply chain?</h2>
-    <p class="mt-3 text-brand-100">Join farmers, buyers and logistics providers using {{ store.store_name|default:'AgriConnect' }}.</p>
+<section class="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
+  <div class="rounded-3xl p-8 md:p-14 bg-gradient-to-r from-brand-700 to-brand-500 text-white">
+    <h2 class="text-3xl md:text-4xl font-semibold max-w-2xl">Give great fashion a second life.</h2>
+    <p class="mt-3 text-brand-100 text-sm md:text-base">Start shopping or launch your own thrift storefront on {{ store.store_name|default:'Thrift & Found' }}.</p>
     <div class="mt-8">
-      <a href="{% if user.is_authenticated %}{% url 'vendor_onboarding' %}{% else %}{% url 'signup' %}{% endif %}" class="inline-block rounded-full border border-white/70 px-8 py-3 font-semibold hover:bg-white/10">Get Started Free</a>
+      <a href="{% if user.is_authenticated %}{% url 'vendor_onboarding' %}{% else %}{% url 'signup' %}{% endif %}" class="inline-block rounded-full border border-white/70 px-8 py-3 font-semibold hover:bg-white/10">Get Started</a>
     </div>
   </div>
 </section>
