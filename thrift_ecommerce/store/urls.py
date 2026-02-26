@@ -15,6 +15,9 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='landing'), name='logout'), 
     # Custom signup view that captures user size preferences
     path('signup/', views.personalized_signup, name='signup'),
+    path('onboarding/', views.vendor_onboarding, name='vendor_onboarding'),
+    path('terms/', views.terms_and_conditions, name='terms'),
+    path('reset-password/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset_form.html'), name='password_reset'),
     path('settings/', views.profile_settings, name='profile_settings'),
 
     # --- CUSTOMER INTERFACE ---
@@ -46,7 +49,9 @@ urlpatterns = [
     # --- OWNER / STAFF MANAGEMENT ---
     # Dashboard for staff to manage inventory
     path('owner/dashboard/', views.owner_dashboard, name='owner_dashboard'),
+    path('store-admin/', views.owner_dashboard, name='store_admin_dashboard'),
     path('owner/product/add/', views.add_product, name='add_product'),
+    path('store-admin/product/add/', views.add_product, name='store_admin_add_product'),
     path('owner/product/edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('management/', views.owner_dashboard, name='owner_dashboard'),
     # Completely remove a product from the database

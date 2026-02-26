@@ -12,8 +12,8 @@ from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from .forms import SignUpForm, ProductForm, StoreSettingsForm
-from .models import Product, Order, OrderItem, Cart, CartItem, StoreSettings, PromoCode
+from .forms import SignUpForm, ProductForm, StoreSettingsForm, VendorOnboardingStepOneForm
+from .models import Product, Order, OrderItem, Cart, CartItem, StoreSettings, PromoCode, VendorProfile
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
@@ -36,7 +36,7 @@ def personalized_signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('dashboard')
+            return redirect('vendor_onboarding')
     else:
         form = SignUpForm()
     return render(request, 'store/signup.html', {'form': form})
@@ -66,6 +66,40 @@ def product_detail(request, product_id):
     return render(request, 'store/product_detail.html', {
         'product': product,
         'related_products': related_products
+    })
+
+
+
+def terms_and_conditions(request):
+    return render(request, 'store/terms.html')
+
+
+def vendor_onboarding(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    profile = VendorProfile.objects.filter(user=request.user).first()
+    step = request.GET.get('step', '1')
+
+    if request.method == 'POST' and step == '1':
+        form = VendorOnboardingStepOneForm(request.POST, instance=profile)
+        if form.is_valid():
+            vendor_profile = form.save(commit=False)
+            vendor_profile.user = request.user
+            vendor_profile.save()
+            messages.success(request, 'Step 1 complete. Your storefront is now provisioned.')
+            return redirect(f"{request.path}?step=2")
+    else:
+        form = VendorOnboardingStepOneForm(instance=profile)
+
+    if step == '2' and not profile:
+        messages.warning(request, 'Complete step 1 to generate your storefront slug.')
+        return redirect(f"{request.path}?step=1")
+
+    return render(request, 'store/vendor_onboarding.html', {
+        'step': step,
+        'form': form,
+        'profile': profile,
     })
 
 # --- WISHLIST ---

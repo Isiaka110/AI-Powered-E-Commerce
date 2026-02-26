@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="max-w-3xl mx-auto px-6 py-16">
+  <h1 class="text-3xl font-black">Vendor Onboarding</h1>
+  <div class="mt-8 border border-gray-200 rounded-2xl overflow-hidden">
+    <div class="grid grid-cols-2">
+      <div class="p-4 text-center font-black text-xs uppercase tracking-widest {% if step == '1' %}bg-black text-white{% else %}bg-gray-100 text-gray-500{% endif %}">Step 1: Contact</div>
+      <div class="p-4 text-center font-black text-xs uppercase tracking-widest {% if step == '2' %}bg-black text-white{% else %}bg-gray-100 text-gray-500{% endif %}">Step 2: Storefront</div>
+    </div>
+    <div class="p-8 bg-white">
+      {% if step == '1' %}
+      <form method="post" class="space-y-5">
+        {% csrf_token %}
+        <div>
+          <label class="text-xs font-black uppercase text-gray-500">Business Name</label>
+          {{ form.business_name }}
+        </div>
+        <div>
+          <label class="text-xs font-black uppercase text-gray-500">Phone Number</label>
+          {{ form.contact_phone }}
+        </div>
+        <button class="px-6 py-3 rounded-xl bg-black text-white font-black uppercase text-xs tracking-widest">Continue</button>
+      </form>
+      {% else %}
+      <p class="text-gray-600">Your custom storefront has been reserved and is ready to share:</p>
+      <div class="mt-4 bg-gray-100 rounded-xl p-4 font-black">aki.com/{{ profile.storefront_slug }}</div>
+      <div class="mt-6 flex gap-3">
+        <a href="{% url 'owner_dashboard' %}" class="px-6 py-3 rounded-xl bg-black text-white font-black uppercase text-xs tracking-widest">Open Command Center</a>
+        <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-xl border border-gray-300 font-black uppercase text-xs tracking-widest">Preview Shopper View</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
