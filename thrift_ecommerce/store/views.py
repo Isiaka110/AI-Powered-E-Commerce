@@ -32,6 +32,18 @@ def landing_page(request):
     recent_products = Product.objects.filter(is_available=True).order_by('-created_at')[:4]
     return render(request, 'store/landing.html', {'recent_products': recent_products})
 
+
+def help_support(request):
+    return render(request, 'store/help_support.html')
+
+
+def how_it_works(request):
+    return render(request, 'store/how_it_works.html')
+
+
+def policies(request):
+    return render(request, 'store/policies.html')
+
 def personalized_signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
