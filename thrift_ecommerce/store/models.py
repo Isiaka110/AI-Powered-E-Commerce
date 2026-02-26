@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.utils.text import slugify
+from django.db.utils import OperationalError, ProgrammingError
 
 # --- EDITABLE CONFIGURATION ---
 # To add/remove sizes, simply update these lists.
@@ -46,8 +47,18 @@ class StoreSettings(models.Model):
 
     @classmethod
     def load(cls):
-        """Loads the single instance of settings or creates one."""
-        obj, created = cls.objects.get_or_create(pk=1)
+        """Load the singleton settings row.
+
+        When the local database schema is behind the current model state
+        (for example, before running pending migrations), querying all model
+        columns can raise OperationalError/ProgrammingError. In that case,
+        return an in-memory default instance so templates can still render
+        while migrations are being applied.
+        """
+        try:
+            obj, created = cls.objects.get_or_create(pk=1)
+        except (OperationalError, ProgrammingError):
+            return cls(pk=1)
         return obj
 
 # --- 2. CUSTOM USER MODEL ---

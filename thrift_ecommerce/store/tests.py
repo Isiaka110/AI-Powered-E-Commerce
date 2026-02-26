@@ -1,11 +1,13 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.db.utils import OperationalError
 
-from .models import Cart, CartItem, Order, Product
+from .models import Cart, CartItem, Order, Product, StoreSettings
 
 
 class CheckoutWorkflowTests(TestCase):
@@ -75,3 +77,12 @@ class CheckoutWorkflowTests(TestCase):
         product.refresh_from_db()
         self.assertEqual(product.quantity, 1)
         self.assertFalse(CartItem.objects.filter(cart=cart).exists())
+
+
+class StoreSettingsLoadTests(TestCase):
+    def test_load_returns_default_instance_when_schema_is_behind(self):
+        with patch.object(StoreSettings.objects, "get_or_create", side_effect=OperationalError):
+            settings_obj = StoreSettings.load()
+
+        self.assertEqual(settings_obj.pk, 1)
+        self.assertEqual(settings_obj.store_name, "ThriftElegance")
