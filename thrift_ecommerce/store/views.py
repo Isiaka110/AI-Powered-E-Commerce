@@ -1,12 +1,23 @@
 import uuid
 from decimal import Decimal
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib import messages  # <--- Add this line
+from django.contrib import messages
+from django.core.mail import EmailMessage
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 from .forms import SignUpForm, ProductForm, StoreSettingsForm
-from .models import Product, Order, OrderItem, Cart, CartItem, StoreSettings
+from .models import Product, Order, OrderItem, Cart, CartItem, StoreSettings, PromoCode
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from .tokens import account_activation_token
 
 # --- HELPER: CHECK IF OWNER ---
 def is_owner(user):
@@ -73,33 +84,26 @@ def wishlist(request):
     products = request.user.favorites.all()
     return render(request, 'store/wishlist.html', {'products': products})
 
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-
-@login_required
-@require_POST
-def quick_edit_product(request):
-    product_id = request.POST.get('product_id')
-    product = get_object_or_404(Product, id=product_id)
-    
-    product.price = request.POST.get('price')
-    product.is_available = 'is_available' in request.POST
-    product.save()
-    
-    return redirect('owner_dashboard')
-
 # --- DATABASE-BACKED CART ---
 
 @login_required
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    if not product.is_available or product.quantity == 0:
+        messages.warning(request, f"{product.name} is currently out of stock.")
+        return redirect('dashboard')
+
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_item, item_created = CartItem.objects.get_or_create(cart=cart, product=product)
-    
-    if not item_created:
+
+    if item_created:
+        messages.success(request, f"Added {product.name} to your bag.")
+    elif cart_item.quantity < product.quantity:
         cart_item.quantity += 1
         cart_item.save()
-        
+    else:
+        messages.warning(request, f"Only {product.quantity} units available for {product.name}.")
+
     return redirect('cart')
 
 # store/views.py
@@ -118,9 +122,11 @@ def cart_view(request):
     discount = Decimal('0.00')
     coupon_error = None
     if request.method == 'POST':
-        code = request.POST.get('coupon_code')
-        if code == 'THRIFT20':
-            discount = total * Decimal('0.20')
+        code = (request.POST.get('coupon_code') or '').strip()
+        promo = PromoCode.objects.filter(code__iexact=code, is_active=True).first()
+        if promo:
+            discount_rate = Decimal(promo.discount_percentage) / Decimal('100')
+            discount = (total * discount_rate).quantize(Decimal('0.01'))
         else:
             coupon_error = "Invalid Coupon Code"
 
@@ -172,33 +178,46 @@ def update_cart_quantity(request, item_id, action):
     return redirect('cart')
 @login_required
 def complete_purchase(request):
-    cart = get_object_or_404(Cart, user=request.user)
-    cart_items = cart.items.all()
-    
-    if not cart_items.exists():
-        return redirect('dashboard')
+    with transaction.atomic():
+        cart = get_object_or_404(Cart.objects.select_for_update(), user=request.user)
+        cart_items = list(cart.items.select_related('product'))
 
-    # Create Order
-    order = Order.objects.create(
-        user=request.user,
-        order_id=str(uuid.uuid4())[:12].upper(),
-        total_paid=cart.total_price,
-        is_completed=True
-    )
+        if not cart_items:
+            messages.warning(request, "Your bag is empty.")
+            return redirect('dashboard')
 
-    for item in cart_items:
-        OrderItem.objects.create(
-            order=order, 
-            product=item.product, 
-            price=item.product.price, # Corrected field name
-            quantity=item.quantity
+        order_total = Decimal('0.00')
+        for item in cart_items:
+            product = Product.objects.select_for_update().get(pk=item.product_id)
+            if not product.is_available or product.quantity < item.quantity:
+                messages.error(
+                    request,
+                    f"{product.name} no longer has enough stock. Please update your bag.",
+                )
+                return redirect('cart')
+            order_total += product.price * item.quantity
+
+        order = Order.objects.create(
+            user=request.user,
+            order_id=str(uuid.uuid4())[:12].upper(),
+            total_paid=order_total,
+            is_completed=True,
+            payment_date=timezone.now(),
         )
-        # Stock Logic
-        product = item.product
-        product.quantity -= item.quantity
-        if product.quantity <= 0:
-            product.is_available = False
-        product.save()
+
+        for item in cart_items:
+            product = Product.objects.select_for_update().get(pk=item.product_id)
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                price=product.price,
+                quantity=item.quantity,
+            )
+            product.quantity -= item.quantity
+            product.is_available = product.quantity > 0
+            product.save(update_fields=['quantity', 'is_available'])
+
+        cart.items.all().delete()
 
     # SEND EMAIL RECEIPT
     try:
@@ -213,7 +232,6 @@ def complete_purchase(request):
     except Exception as e:
         print(f"Email failed: {e}")
 
-    cart_items.delete() 
     return render(request, 'store/success.html', {'order': order})
 
 
@@ -230,20 +248,6 @@ def order_history(request):
 def download_invoice(request, order_id):
     order = get_object_or_404(Order, order_id=order_id, user=request.user)
     return render(request, 'store/invoice.html', {'order': order})
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import user_passes_test
-from django.views.decorators.http import require_POST
-from .models import Product, Order, StoreSettings
-from .forms import ProductForm, StoreSettingsForm
-
-# Helper to check if user is the owner
-def is_owner(user):
-    return user.is_authenticated and user.is_staff
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 
 @login_required
 def profile_settings(request):
@@ -292,13 +296,6 @@ def owner_dashboard(request):
         'settings_form': settings_form,
         'settings': settings
     })
-
-@user_passes_test(is_owner)
-@require_POST # Security: Only allow POST requests for deletion
-def delete_product(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    product.delete()
-    return redirect('owner_dashboard')
 
 @user_passes_test(is_owner)
 @require_POST
@@ -350,13 +347,6 @@ def toggle_availability(request, product_id):
     product.is_available = not product.is_available
     product.save()
     return redirect('owner_dashboard')
-
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.core.mail import EmailMessage
-from .tokens import account_activation_token # We will create this file
 
 def signup(request):
     if request.method == 'POST':
