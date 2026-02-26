@@ -11,26 +11,11 @@
     </div>
 
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <article class="bg-white border border-gray-200 rounded-3xl p-5">
-            <p class="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Total Revenue</p>
-            <p class="text-2xl font-black mt-1">₦{{ total_sales }}</p>
-        </article>
-        <article class="bg-white border border-gray-200 rounded-3xl p-5">
-            <p class="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Paid Orders</p>
-            <p class="text-2xl font-black mt-1">{{ paid_orders_count }}</p>
-        </article>
-        <article class="bg-white border border-gray-200 rounded-3xl p-5">
-            <p class="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Pending Fulfillment</p>
-            <p class="text-2xl font-black mt-1">{{ pending_orders_count }}</p>
-        </article>
-        <article class="bg-white border border-gray-200 rounded-3xl p-5">
-            <p class="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Live Products</p>
-            <p class="text-2xl font-black mt-1">{{ active_products_count }}</p>
-        </article>
-        <article class="bg-white border border-gray-200 rounded-3xl p-5">
-            <p class="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Low Stock (≤2)</p>
-            <p class="text-2xl font-black mt-1">{{ low_stock_count }}</p>
-        </article>
+        <article class="bg-white border border-gray-200 rounded-3xl p-5"><p class="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Total Revenue</p><p class="text-2xl font-black mt-1">₦{{ total_sales }}</p></article>
+        <article class="bg-white border border-gray-200 rounded-3xl p-5"><p class="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Paid Orders</p><p class="text-2xl font-black mt-1">{{ paid_orders_count }}</p></article>
+        <article class="bg-white border border-gray-200 rounded-3xl p-5"><p class="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Pending Fulfillment</p><p class="text-2xl font-black mt-1">{{ pending_orders_count }}</p></article>
+        <article class="bg-white border border-gray-200 rounded-3xl p-5"><p class="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Live Products</p><p class="text-2xl font-black mt-1">{{ active_products_count }}</p></article>
+        <article class="bg-white border border-gray-200 rounded-3xl p-5"><p class="text-[11px] text-gray-500 uppercase font-bold tracking-wider">Low Stock (≤2)</p><p class="text-2xl font-black mt-1">{{ low_stock_count }}</p></article>
     </div>
 
     <div class="grid lg:grid-cols-3 gap-6">
@@ -39,46 +24,39 @@
                 <h2 class="text-lg font-black">Inventory Management</h2>
                 <p class="text-xs text-gray-500 uppercase tracking-widest">{{ products.count }} items</p>
             </div>
-            <div class="overflow-x-auto">
+
+            <div class="md:hidden space-y-3">
+                {% for product in products %}
+                <article class="rounded-2xl border border-gray-200 p-4 space-y-3">
+                    <div><p class="font-bold text-sm">{{ product.name }}</p><p class="text-xs text-gray-500">{{ product.get_category_display }} · {{ product.size }}</p></div>
+                    <div class="flex items-center justify-between text-xs font-semibold"><span>₦{{ product.price }}</span><span>Stock: {{ product.quantity }}</span></div>
+                    <div class="flex items-center justify-between">
+                        {% if product.is_available %}<span class="px-3 py-1 rounded-full text-xs font-bold bg-black text-white">Live</span>{% else %}<span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">Hidden</span>{% endif %}
+                        <div class="flex gap-2"><a href="{% url 'edit_product' product.id %}" class="px-3 py-1.5 rounded-lg border border-gray-300 text-[11px] font-bold">Edit</a><a href="{% url 'toggle_availability' product.id %}" class="px-3 py-1.5 rounded-lg border border-gray-300 text-[11px] font-bold">Toggle</a></div>
+                    </div>
+                </article>
+                {% empty %}
+                <p class="py-8 text-center text-gray-500 text-sm">No products yet. Add your first piece.</p>
+                {% endfor %}
+            </div>
+
+            <div class="hidden md:block overflow-x-auto">
                 <table class="w-full min-w-[750px] text-sm">
                     <thead>
                         <tr class="text-left text-gray-500 uppercase text-xs tracking-widest border-b border-gray-200">
-                            <th class="py-3 pr-3">Piece</th>
-                            <th class="py-3 pr-3">Stock</th>
-                            <th class="py-3 pr-3">Price</th>
-                            <th class="py-3 pr-3">Status</th>
-                            <th class="py-3">Actions</th>
+                            <th class="py-3 pr-3">Piece</th><th class="py-3 pr-3">Stock</th><th class="py-3 pr-3">Price</th><th class="py-3 pr-3">Status</th><th class="py-3">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for product in products %}
                         <tr class="border-b border-gray-100 align-top">
-                            <td class="py-4 pr-3">
-                                <p class="font-bold">{{ product.name }}</p>
-                                <p class="text-xs text-gray-500">{{ product.get_category_display }} · {{ product.size }}</p>
-                            </td>
+                            <td class="py-4 pr-3"><p class="font-bold">{{ product.name }}</p><p class="text-xs text-gray-500">{{ product.get_category_display }} · {{ product.size }}</p></td>
                             <td class="py-4 pr-3 font-semibold {% if product.quantity <= 2 %}text-black{% else %}text-gray-700{% endif %}">{{ product.quantity }}</td>
                             <td class="py-4 pr-3 font-semibold">₦{{ product.price }}</td>
-                            <td class="py-4 pr-3">
-                                {% if product.is_available %}
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-black text-white">Live</span>
-                                {% else %}
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">Hidden</span>
-                                {% endif %}
-                            </td>
-                            <td class="py-4">
-                                <div class="flex flex-wrap gap-2">
-                                    <a href="{% url 'edit_product' product.id %}" class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-bold hover:bg-gray-100">Edit</a>
-                                    <a href="{% url 'toggle_availability' product.id %}" class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-bold hover:bg-gray-100">Toggle</a>
-                                    <a href="{% url 'delete_product' product.id %}" class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-bold hover:bg-gray-100" onclick="return confirm('Delete this product?')">Delete</a>
-                                </div>
-                            </td>
+                            <td class="py-4 pr-3">{% if product.is_available %}<span class="px-3 py-1 rounded-full text-xs font-bold bg-black text-white">Live</span>{% else %}<span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">Hidden</span>{% endif %}</td>
+                            <td class="py-4"><div class="flex flex-wrap gap-2"><a href="{% url 'edit_product' product.id %}" class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-bold hover:bg-gray-100">Edit</a><a href="{% url 'toggle_availability' product.id %}" class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-bold hover:bg-gray-100">Toggle</a><a href="{% url 'delete_product' product.id %}" class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-bold hover:bg-gray-100" onclick="return confirm('Delete this product?')">Delete</a></div></td>
                         </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="py-10 text-center text-gray-500">No products yet. Add your first piece.</td>
-                        </tr>
-                        {% endfor %}
+                        {% empty %}<tr><td colspan="5" class="py-10 text-center text-gray-500">No products yet. Add your first piece.</td></tr>{% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -86,30 +64,27 @@
 
         <div class="space-y-6">
             <section class="bg-white border border-gray-200 rounded-[2rem] p-6">
-                <h2 class="text-base font-black mb-4">Branding</h2>
-                <p class="text-xs text-gray-500 mb-4">Changes to logo and store name are reflected across navigation, product pages, and customer emails.</p>
+                <h2 class="text-base font-black mb-4">Branding & Checkout Rules</h2>
                 <form method="POST" enctype="multipart/form-data" class="space-y-4">
                     {% csrf_token %}
                     <input type="hidden" name="update_settings" value="true">
-                    {{ settings_form.store_name }}
-                    {{ settings_form.logo }}
-                    <button type="submit" class="w-full bg-black text-white rounded-xl py-3 text-sm font-bold hover:bg-gray-800">Save Branding</button>
+                    <div><label class="text-[11px] font-bold uppercase tracking-widest text-gray-500">Store name</label>{{ settings_form.store_name }}</div>
+                    <div><label class="text-[11px] font-bold uppercase tracking-widest text-gray-500">Logo</label>{{ settings_form.logo }}</div>
+                    <div class="space-y-2 rounded-xl border border-gray-200 p-3">
+                        <label class="flex items-center gap-2 text-xs font-semibold">{{ settings_form.allow_pickup }} Enable pickup</label>
+                        <label class="flex items-center gap-2 text-xs font-semibold">{{ settings_form.allow_waybill_delivery }} Enable waybill delivery</label>
+                    </div>
+                    <div><label class="text-[11px] font-bold uppercase tracking-widest text-gray-500">Receipt delivery channel</label>{{ settings_form.receipt_channel }}</div>
+                    <div><label class="text-[11px] font-bold uppercase tracking-widest text-gray-500">Pre-purchase instruction</label>{{ settings_form.pre_purchase_instruction }}</div>
+                    <button type="submit" class="w-full bg-black text-white rounded-xl py-3 text-sm font-bold hover:bg-gray-800">Save Studio Settings</button>
                 </form>
             </section>
-
             <section class="bg-white border border-gray-200 rounded-[2rem] p-6">
                 <h2 class="text-base font-black mb-4">Sales Snapshot (30 days)</h2>
                 <p class="text-sm mb-1">Orders: <span class="font-bold">{{ sales_window_orders }}</span></p>
                 <p class="text-sm mb-4">Revenue: <span class="font-bold">₦{{ sales_window_total }}</span></p>
                 <ul class="space-y-2 max-h-48 overflow-auto">
-                    {% for point in monthly_sales %}
-                    <li class="text-xs text-gray-700 flex justify-between border-b border-gray-100 pb-2">
-                        <span>{{ point.month }}</span>
-                        <span class="font-bold">₦{{ point.total }}</span>
-                    </li>
-                    {% empty %}
-                    <li class="text-xs text-gray-500">No paid sales yet.</li>
-                    {% endfor %}
+                    {% for point in monthly_sales %}<li class="text-xs text-gray-700 flex justify-between border-b border-gray-100 pb-2"><span>{{ point.month }}</span><span class="font-bold">₦{{ point.total }}</span></li>{% empty %}<li class="text-xs text-gray-500">No paid sales yet.</li>{% endfor %}
                 </ul>
             </section>
         </div>
@@ -128,23 +103,11 @@
                     <p class="text-xs text-gray-500">{{ order.user.email }} · {{ order.created_at|date:"M d, Y H:i" }}</p>
                     <p class="text-sm font-semibold mt-1">₦{{ order.total_paid }} · {{ order.items.count }} item(s)</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    {% if order.is_completed %}
-                    <span class="px-3 py-1 rounded-full bg-black text-white text-xs font-bold">Paid</span>
-                    {% else %}
-                    <span class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs font-bold">Pending</span>
-                    {% endif %}
-                    <form method="POST" action="{% url 'owner_toggle_order_status' order.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="px-4 py-2 rounded-xl border border-gray-300 text-xs font-bold hover:bg-gray-100">
-                            {% if order.is_completed %}Mark Pending{% else %}Mark Paid{% endif %}
-                        </button>
-                    </form>
+                <div class="flex items-center gap-2">{% if order.is_completed %}<span class="px-3 py-1 rounded-full bg-black text-white text-xs font-bold">Paid</span>{% else %}<span class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs font-bold">Pending</span>{% endif %}
+                    <form method="POST" action="{% url 'owner_toggle_order_status' order.id %}">{% csrf_token %}<button type="submit" class="px-4 py-2 rounded-xl border border-gray-300 text-xs font-bold hover:bg-gray-100">{% if order.is_completed %}Mark Pending{% else %}Mark Paid{% endif %}</button></form>
                 </div>
             </article>
-            {% empty %}
-            <p class="text-sm text-gray-500">No orders available.</p>
-            {% endfor %}
+            {% empty %}<p class="text-sm text-gray-500">No orders available.</p>{% endfor %}
         </div>
     </section>
 </section>

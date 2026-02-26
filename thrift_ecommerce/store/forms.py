@@ -83,7 +83,14 @@ class ProductForm(forms.ModelForm):
 class StoreSettingsForm(forms.ModelForm):
     class Meta:
         model = StoreSettings
-        fields = ['store_name', 'logo']
+        fields = [
+            'store_name',
+            'logo',
+            'allow_pickup',
+            'allow_waybill_delivery',
+            'receipt_channel',
+            'pre_purchase_instruction',
+        ]
         widgets = {
             'store_name': forms.TextInput(attrs={
                 'class': 'w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none transition',
@@ -91,6 +98,20 @@ class StoreSettingsForm(forms.ModelForm):
             }),
             'logo': forms.ClearableFileInput(attrs={
                 'class': 'text-[10px] text-gray-500'
+            }),
+            'allow_pickup': forms.CheckboxInput(attrs={
+                'class': 'h-4 w-4 rounded border-gray-300 text-black focus:ring-black'
+            }),
+            'allow_waybill_delivery': forms.CheckboxInput(attrs={
+                'class': 'h-4 w-4 rounded border-gray-300 text-black focus:ring-black'
+            }),
+            'receipt_channel': forms.Select(attrs={
+                'class': 'w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-purple-500 outline-none transition'
+            }),
+            'pre_purchase_instruction': forms.Textarea(attrs={
+                'class': 'w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-purple-500 outline-none transition',
+                'rows': 3,
+                'placeholder': 'Instruction shown before customers complete payment.'
             }),
         }
 

@@ -27,6 +27,16 @@ class StoreSettings(models.Model):
     """Global settings for the platform owner to manage branding."""
     store_name = models.CharField(max_length=100, default="ThriftElegance")
     logo = models.ImageField(upload_to='store_assets/', blank=True, null=True)
+    allow_pickup = models.BooleanField(default=True)
+    allow_waybill_delivery = models.BooleanField(default=True)
+    pre_purchase_instruction = models.TextField(blank=True)
+    RECEIPT_CHANNEL_CHOICES = (
+        ('EMAIL', 'Email receipt'),
+        ('DM', 'Send receipt to direct message'),
+        ('SOCIAL_INBOX', 'Send receipt to social inbox'),
+        ('NONE', 'Do not send a receipt automatically'),
+    )
+    receipt_channel = models.CharField(max_length=20, choices=RECEIPT_CHANNEL_CHOICES, default='EMAIL')
     
     class Meta:
         verbose_name_plural = "Store Settings"
@@ -141,8 +151,15 @@ class SiteBanner(models.Model):
 
 # --- 4. CART & ITEMS ---
 class Cart(models.Model):
+    FULFILLMENT_CHOICES = (
+        ('PICKUP', 'Pickup'),
+        ('WAYBILL', 'Waybill delivery'),
+    )
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cart')
     created_at = models.DateTimeField(auto_now_add=True)
+    fulfillment_method = models.CharField(max_length=10, choices=FULFILLMENT_CHOICES, default='PICKUP')
+    logistics_note = models.CharField(max_length=255, blank=True)
 
     @property
     def total_price(self):
@@ -159,12 +176,21 @@ class CartItem(models.Model):
 
 # --- 5. ORDER & ITEMS ---
 class Order(models.Model):
+    FULFILLMENT_CHOICES = (
+        ('PICKUP', 'Pickup'),
+        ('WAYBILL', 'Waybill delivery'),
+    )
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     created_at = models.DateTimeField(auto_now_add=True)
     total_paid = models.DecimalField(max_digits=12, decimal_places=2)
     order_id = models.CharField(max_length=100, unique=True)
     is_completed = models.BooleanField(default=False)
     payment_date = models.DateTimeField(null=True, blank=True)
+    fulfillment_method = models.CharField(max_length=10, choices=FULFILLMENT_CHOICES, default='PICKUP')
+    logistics_note = models.CharField(max_length=255, blank=True)
+    receipt_channel_used = models.CharField(max_length=20, default='EMAIL')
+    pre_purchase_instruction_snapshot = models.TextField(blank=True)
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
